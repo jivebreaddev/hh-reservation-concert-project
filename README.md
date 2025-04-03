@@ -160,10 +160,46 @@
 
 <details>
   <summary>9. API SPECS</summary>
+    <h2> 대기열 API</h2>
+    <hr>
+    <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/queue.png" alt="이미지 설명" >
+    ![image](https://github.com/user-attachments/assets/a4abfcdf-be94-4fb9-9553-42475e6b8c9d)
+
+
+  <h2> 예약 접근 가능 API</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationAvailable.png" alt="이미지 설명" >
+
+  <h2> 예약 조회 API</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
+  <h2> 마일스톤</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
+  <h2> 마일스톤</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
+  <h2> 마일스톤</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
+  <h2> 마일스톤</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
+  <h2> 마일스톤</h2>
+    <hr>
+      <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/swagger/reservationView.png" alt="이미지 설명" >
+
 </details>
 
 <details>
   <summary>10. Milestones</summary>
+  <h2> 마일스톤</h2>
+  <hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/main/docs/concertgaant.JPG" alt="이미지 설명" >
 </details>
 
