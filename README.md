@@ -4,9 +4,8 @@
 
 <details>
   <summary>1. 요구사항 분석</summary>
-## 요구사항 정리
----------------------------------------------
-
+<h2>요구사항 정리</h2>
+<hr>
 - **`콘서트 예약 서비스`**를 구현해 봅니다.
 - 대기열 시스템을 구축하고, 예약 서비스는 작업가능한 유저만 수행할 수 있도록 해야합니다.
 - **사용자는 좌석예약 시에 미리 충전한 잔액을 이용합니다.**
@@ -76,8 +75,8 @@
 
 <details>
   <summary>2. 유저스토리</summary>
-## 유저스토리
----------------------------------------------
+<h2>유저스토리</h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/user-story.png" alt="이미지 설명">
 
 ### 주요 유즈 케이스 시나리오
@@ -98,12 +97,12 @@
 
 <details>
   <summary>3. 플로우 차트</summary>
-## 콘서트 예약가능한 날짜 조회/ 임시 예약 플로우 차트
----------------------------------------------
+<h2> 콘서트 예약가능한 날짜 조회/ 임시 예약 플로우 차트</h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/flowChart.png" alt="이미지 설명">
 
-## 좌석 결제/포인트 결제 플로우 차트
----------------------------------------------
+<h2> 좌석 결제/포인트 결제 플로우 차트 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/flowchart2.png" alt="이미지 설명">
 </details>
 
@@ -113,47 +112,47 @@
 
 <details>
   <summary>5. ERD 설계</summary>
-## 결제, 예약, 고객, 좌석, 콘서트, 대기열, 토큰에 대한 스키마 설계
----------------------------------------------
+<h2> 결제, 예약, 고객, 좌석, 콘서트, 대기열, 토큰에 대한 스키마 설계 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/erd.png" alt="이미지 설명">
 </details>
 
 <details>
   <summary>6. 대기열 시퀀스 다이어그램, 상태 다이어그램</summary>
-## 대기열 시퀀스 다이어그램
----------------------------------------------
+<h2> 대기열 시퀀스 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/queue.png" alt="이미지 설명">
-## 대기열 상태 다이어그램
----------------------------------------------
+<h2> 대기열 상태 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/stateQueue.png" alt="이미지 설명">
 
 </details>
 
 <details>
   <summary>7. 조회/예약 시퀀스, 상태 다이어그램</summary>
-## 조회 시퀀스 다이어그램
----------------------------------------------
+<h2> 조회 시퀀스 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/booking.png" alt="이미지 설명">
-## 조회 상태 다이어그램
----------------------------------------------
-  <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/stateSeat.png" alt="이미지 설명">
-## 조회 시퀀스 다이어그램
----------------------------------------------
-  <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/reservation.png" alt="이미지 설명">
-## 조회 상태 다이어그램
----------------------------------------------
+<h2> 조회 상태 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/stateReservation.png" alt="이미지 설명">
+<h2> 조회 시퀀스 다이어그램 </h2>
+<hr>
+  <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/reservation.png" alt="이미지 설명">
+<h2> 조회 상태 다이어그램 </h2>
+<hr>
+  <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/stateSeat.png" alt="이미지 설명">
 
 
 </details>
 
 <details>
   <summary>8. 충전/결제 시퀀스, 상태 다이어그램</summary>
-## 충전/결제 시퀀스 다이어그램
----------------------------------------------
+<h2> 충전/결제 시퀀스 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/payment.png" alt="이미지 설명">
-## 충전/결제 상태 다이어그램
----------------------------------------------
+<h2> 충전/결제 상태 다이어그램 </h2>
+<hr>
   <img src="https://raw.githubusercontent.com/jivebreaddev/hh-reservation-concert-project/week2-base/docs/statePayment.png" alt="이미지 설명">
 
 </details>
