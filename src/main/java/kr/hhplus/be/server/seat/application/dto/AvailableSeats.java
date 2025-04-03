@@ -1,7 +1,8 @@
 package kr.hhplus.be.server.seat.application.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-
+@Schema
 public class AvailableSeats {
 
   private final List<AvailableSeat> availableSeatList;
@@ -9,5 +10,9 @@ public class AvailableSeats {
   public AvailableSeats(List<AvailableSeat> availableSeatList) {
     this.availableSeatList = availableSeatList;
 
+  }
+
+  public List<AvailableSeat> getAvailableSeatList() {
+    return availableSeatList;
   }
 }
