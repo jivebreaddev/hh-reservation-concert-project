@@ -1,28 +1,19 @@
 package kr.hhplus.be.server.concerts.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 @Schema
 public class AvailableSeat {
-  private final Long lineId;
-  private final String sectionId;
-  private final Long seatId;
+  private final UUID seatId;
 
-  public AvailableSeat(Long lineId, String sectionId, Long seatId) {
-    this.lineId = lineId;
-    this.sectionId = sectionId;
+  public AvailableSeat(UUID seatId) {
+
     this.seatId = seatId;
   }
 
-  public Long getLineId() {
-    return lineId;
-  }
 
-  public String getSectionId() {
-    return sectionId;
-  }
-
-  public Long getSeatId() {
+  public UUID getSeatId() {
     return seatId;
   }
 }
