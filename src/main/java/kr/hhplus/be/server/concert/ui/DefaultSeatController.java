@@ -1,13 +1,12 @@
-package kr.hhplus.be.server.seat.ui;
+package kr.hhplus.be.server.concert.ui;
 
 import java.util.List;
-import kr.hhplus.be.server.seat.application.dto.AvailableSeat;
-import kr.hhplus.be.server.seat.application.dto.AvailableSeats;
-import kr.hhplus.be.server.seat.application.dto.GetAvailableDatesRequest;
-import kr.hhplus.be.server.seat.application.dto.GetAvailableDatesResponse;
+import kr.hhplus.be.server.concert.application.dto.AvailableSeat;
+import kr.hhplus.be.server.concert.application.dto.AvailableSeats;
+import kr.hhplus.be.server.concert.application.dto.GetAvailableDatesRequest;
+import kr.hhplus.be.server.concert.application.dto.GetAvailableDatesResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

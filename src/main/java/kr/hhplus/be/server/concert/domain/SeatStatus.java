@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.seat.domain;
+package kr.hhplus.be.server.concert.domain;
 
 public enum SeatStatus {
   AVAILABLE, RESERVED, HELD

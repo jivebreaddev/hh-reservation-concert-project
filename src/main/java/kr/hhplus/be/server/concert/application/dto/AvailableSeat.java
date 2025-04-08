@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.seat.application.dto;
+package kr.hhplus.be.server.concert.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
