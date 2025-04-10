@@ -24,6 +24,7 @@ public class Payment {
   @Column(name = "amount", nullable = false, columnDefinition = "BIGINT")
   private Long amount;
 
+
   @Column(name = "status", nullable = false, columnDefinition = "varchar(255)")
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;

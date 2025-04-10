@@ -50,7 +50,8 @@ public class DefaultPointService implements PointUseCase {
   @Override
   @Transactional
   public UseResponse useUserPoint(UseRequest request) {
-    Point point = pointRepository.findByUserId(request.getUserId()).orElseThrow();
+    Point point = pointRepository.findByUserId(request.getUserId())
+        .orElseThrow(RuntimeException::new);
 
     point.usePoint(Money.of(point.getBalance()), dateTimeFactory.getCurrentTime());
 

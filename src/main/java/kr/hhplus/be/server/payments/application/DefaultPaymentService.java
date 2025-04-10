@@ -20,11 +20,14 @@ public class DefaultPaymentService implements PaymentUseCase {
   @Override
   public Payment sendPayment(UUID userId, Long amount) {
     Payment payment = paymentClient.sendPayment(userId, amount);
-    
-    // Transaction 시작
-    Payment saved = paymentStore.save(payment);
-
-    return saved;
+    try {
+      // Transaction 시작
+      Payment saved = paymentStore.save(payment);
+      return saved;
+    } catch (Exception e) {
+      // payment에 실패한다면, 보상처리가 필요
+      throw e;
+    }
   }
 
 }

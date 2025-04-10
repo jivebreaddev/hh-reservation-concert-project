@@ -24,6 +24,18 @@ public class Point {
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
+  protected Point(UUID id, UUID userId, Money balance, LocalDateTime updatedAt) {
+    this.id = id;
+    this.userId = userId;
+    this.balance = balance;
+    this.updatedAt = updatedAt;
+  }
+
+  public static Point of(UUID userId, Long balance){
+
+    return new Point(UUID.randomUUID(), userId, Money.of(balance), LocalDateTime.now());
+  }
+
   public Money chargePoint(Money money, LocalDateTime updateTime) {
     this.updatedAt = updateTime;
     return this.balance = this.balance.add(money);
