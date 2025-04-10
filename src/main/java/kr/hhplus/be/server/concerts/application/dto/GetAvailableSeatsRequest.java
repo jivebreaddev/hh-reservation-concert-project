@@ -5,13 +5,13 @@ import java.util.UUID;
 
 public class GetAvailableSeatsRequest {
   @NotBlank
-  private final String concertId;
+  private final UUID concertId;
 
-  public GetAvailableSeatsRequest(String concertId) {
+  public GetAvailableSeatsRequest(UUID concertId) {
     this.concertId = concertId;
   }
 
   public UUID getConcertId() {
-    return UUID.fromString(concertId);
+    return concertId;
   }
 }
