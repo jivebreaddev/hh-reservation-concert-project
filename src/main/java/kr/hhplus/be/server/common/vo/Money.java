@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.common.vo;
 
 import jakarta.persistence.Embeddable;
+import java.util.Objects;
 
 @Embeddable
 public class Money {
@@ -9,6 +10,7 @@ public class Money {
   protected Money() {}
 
   public Money(Long amount) {
+    if (amount == null) throw new IllegalArgumentException("amount must not be null");
     if (amount < 0) throw new IllegalArgumentException("금액은 음수일 수 없습니다.");
     this.amount = amount;
   }
@@ -22,6 +24,7 @@ public class Money {
   }
 
   public static Money of(Long amount){
+
     return new Money(amount);
   }
   public boolean isGreaterThan(Money other) {
@@ -32,5 +35,20 @@ public class Money {
     return amount;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Money money = (Money) o;
+    return Objects.equals(amount, money.amount);
+  }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(amount);
+  }
 }

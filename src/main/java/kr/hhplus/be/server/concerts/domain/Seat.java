@@ -25,6 +25,17 @@ public class Seat {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
+  protected Seat(UUID id, UUID concertId, SeatStatus seatStatus, LocalDateTime createdAt) {
+    this.id = id;
+    this.concertId = concertId;
+    this.seatStatus = seatStatus;
+    this.createdAt = createdAt;
+  }
+
+  public static Seat of(UUID id, UUID concertId, SeatStatus seatStatus, LocalDateTime createdAt){
+    return new Seat(id, concertId, seatStatus, createdAt);
+  }
+
   public UUID getId() {
     return id;
   }
@@ -41,6 +52,15 @@ public class Seat {
     this.seatStatus = SeatStatus.RESERVED;
   }
 
+  public boolean isAvailable(){
+    return this.seatStatus.equals(SeatStatus.AVAILABLE);
+  }
+  public boolean isHeld(){
+    return this.seatStatus.equals(SeatStatus.HELD);
+  }
+  public boolean isReserved(){
+    return this.seatStatus.equals(SeatStatus.RESERVED);
+  }
   @Override
   public boolean equals(Object o) {
     if (this == o) {
