@@ -10,6 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DefaultSeatRepository extends SeatRepository, JpaRepository<UUID, Seat> {
 
-
 }
 

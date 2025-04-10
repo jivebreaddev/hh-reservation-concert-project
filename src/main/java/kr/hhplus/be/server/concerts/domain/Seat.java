@@ -29,6 +29,18 @@ public class Seat {
     return id;
   }
 
+  public void toAvailable() {
+    this.seatStatus = SeatStatus.AVAILABLE;
+  }
+
+  public void toHeld() {
+    this.seatStatus = SeatStatus.HELD;
+  }
+
+  public void toReserved() {
+    this.seatStatus = SeatStatus.RESERVED;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

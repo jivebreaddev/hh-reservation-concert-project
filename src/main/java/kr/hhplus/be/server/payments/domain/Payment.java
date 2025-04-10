@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,12 +28,16 @@ public class Payment {
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
 
+  @Column(name = "updated_at", nullable = false)
+  private LocalDateTime updatedAt;
+
   private Payment(UUID id, UUID userId, Long amount, PaymentStatus paymentStatus) {
     this.id = id;
     this.userId = userId;
     this.amount = amount;
     this.paymentStatus = paymentStatus;
   }
+
 
   public static Payment of(UUID id, UUID userId, Long amount, PaymentStatus paymentStatus){
     return new Payment(id, userId, amount, paymentStatus);

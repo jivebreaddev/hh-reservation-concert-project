@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.reservations.application.dto.GetReservationRequest;
 import kr.hhplus.be.server.reservations.application.dto.GetReservationResponse;
+import kr.hhplus.be.server.reservations.application.dto.GetUserReservation;
 import kr.hhplus.be.server.reservations.application.dto.ReservationRequest;
 import kr.hhplus.be.server.reservations.application.dto.ReservationResponse;
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationRequest;

@@ -1,22 +1,17 @@
 package kr.hhplus.be.server.reservations.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 @Schema
 public class ReservationRequest {
-  private final Long userId;
-  private final Long seatId;
+  private final UUID reservationId;
 
-  public ReservationRequest(Long userId, Long seatId) {
-    this.userId = userId;
-    this.seatId = seatId;
+  public ReservationRequest(UUID reservationId) {
+    this.reservationId = reservationId;
   }
 
-  public Long getUserId() {
-    return userId;
-  }
-
-  public Long getSeatId() {
-    return seatId;
+  public UUID getReservationId() {
+    return reservationId;
   }
 }

@@ -1,56 +1,23 @@
 package kr.hhplus.be.server.reservations.application.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
-import kr.hhplus.be.server.reservations.domain.ReservationStatus;
-@Schema
+import java.util.List;
+import kr.hhplus.be.server.reservations.domain.Reservation;
+
 public class GetReservationResponse {
 
-  private final LocalDateTime reservedDate;
-  private final Long seatId;
-  private final String sectionId;
-  private final Long LineId;
+  private List<GetUserReservation> reservations;
 
-  private final Long concertId;
-  private final String concertName;
-  private final ReservationStatus reservationStatus;
-
-  public GetReservationResponse(LocalDateTime reservedDate, Long seatId, String sectionId,
-      Long lineId, Long concertId, String concertName, ReservationStatus reservationStatus) {
-    this.reservedDate = reservedDate;
-    this.seatId = seatId;
-    this.sectionId = sectionId;
-    LineId = lineId;
-    this.concertId = concertId;
-    this.concertName = concertName;
-    this.reservationStatus = reservationStatus;
+  public GetReservationResponse(List<GetUserReservation> reservations) {
+    this.reservations = reservations;
   }
 
-  public LocalDateTime getReservedDate() {
-    return reservedDate;
+  public List<GetUserReservation> getReservations() {
+    return reservations;
   }
 
-  public Long getSeatId() {
-    return seatId;
-  }
-
-  public String getSectionId() {
-    return sectionId;
-  }
-
-  public Long getLineId() {
-    return LineId;
-  }
-
-  public Long getConcertId() {
-    return concertId;
-  }
-
-  public String getConcertName() {
-    return concertName;
-  }
-
-  public ReservationStatus getReservationStatus() {
-    return reservationStatus;
+  public static GetReservationResponse of(List<Reservation> reservations) {
+    return new GetReservationResponse(reservations.stream().map(
+        reservation -> new GetUserReservation(reservation.getReservedAt(), reservation.getSeatId(),
+            reservation.getReservationStatus())).toList());
   }
 }

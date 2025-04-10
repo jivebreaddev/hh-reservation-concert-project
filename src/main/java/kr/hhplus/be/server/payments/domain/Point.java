@@ -21,8 +21,6 @@ public class Point {
   @Column(name = "balance", nullable = false, columnDefinition = "BIGINT")
   private Money balance;
 
-
-
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
