@@ -40,7 +40,9 @@ dependencies {
 	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")
 
-    // Test
+	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
