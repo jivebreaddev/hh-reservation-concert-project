@@ -44,7 +44,7 @@ public class Reservation {
 
   public static Reservation createTemporaryReservation(UUID id, UUID userId, UUID seat_id,
       Long minutes) {
-    return new Reservation(UUID.randomUUID(), userId, seat_id, ReservationStatus.PENDING,
+    return new Reservation(id, userId, seat_id, ReservationStatus.PENDING,
         LocalDateTime.now().plusMinutes(minutes));
   }
 

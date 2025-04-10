@@ -16,4 +16,16 @@ public class UseResponse {
     this.amount = amount;
     this.updatedTime = updatedTime;
   }
+
+  public UUID getUserId() {
+    return userId;
+  }
+
+  public Long getAmount() {
+    return amount;
+  }
+
+  public LocalDateTime getUpdatedTime() {
+    return updatedTime;
+  }
 }

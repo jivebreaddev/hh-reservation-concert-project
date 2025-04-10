@@ -6,6 +6,8 @@ import kr.hhplus.be.server.reservations.domain.ReservationStatus;
 @Schema
 public class TemporaryReservationResponse {
   private final UUID userId;
+
+
   private final UUID seatId;
   private final ReservationStatus reservationStatus;
 
@@ -19,7 +21,9 @@ public class TemporaryReservationResponse {
   public UUID getUserId() {
     return userId;
   }
-
+  public UUID getSeatId() {
+    return seatId;
+  }
   public ReservationStatus getReservationStatus() {
     return reservationStatus;
   }

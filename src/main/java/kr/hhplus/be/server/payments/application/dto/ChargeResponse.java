@@ -8,7 +8,6 @@ import kr.hhplus.be.server.payments.domain.PaymentStatus;
 @Schema
 public class ChargeResponse {
   private final UUID paymentId;
-
   private final Long balance;
 
   public ChargeResponse(UUID paymentId, Long balance) {
