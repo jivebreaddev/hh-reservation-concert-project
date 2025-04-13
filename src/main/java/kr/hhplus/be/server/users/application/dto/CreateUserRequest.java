@@ -4,13 +4,20 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema
 public class CreateUserRequest {
-  private final Long userId;
 
-  public CreateUserRequest(Long userId) {
-    this.userId = userId;
+  private final String name;
+  private final String email;
+
+  public CreateUserRequest(Long userId, String name, String email) {
+    this.name = name;
+    this.email = email;
   }
 
-  public Long getUserId() {
-    return userId;
+  public String getName() {
+    return name;
+  }
+
+  public String getEmail() {
+    return email;
   }
 }
