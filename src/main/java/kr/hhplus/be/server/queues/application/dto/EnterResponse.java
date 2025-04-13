@@ -1,26 +1,24 @@
 package kr.hhplus.be.server.queues.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 import kr.hhplus.be.server.queues.domain.QueueStatus;
+
 @Schema
 public class EnterResponse {
-  private final Long userId;
-  private final Long percentage;
+
+  private final UUID userId;
   private final QueueStatus queueStatus;
 
-  public EnterResponse(Long userId, Long percentage, QueueStatus queueStatus) {
+  public EnterResponse(UUID userId, QueueStatus queueStatus) {
     this.userId = userId;
-    this.percentage = percentage;
     this.queueStatus = queueStatus;
   }
 
-  public Long getUserId() {
+  public UUID getUserId() {
     return userId;
   }
 
-  public Long getPercentage() {
-    return percentage;
-  }
 
   public QueueStatus getQueueStatus() {
     return queueStatus;
