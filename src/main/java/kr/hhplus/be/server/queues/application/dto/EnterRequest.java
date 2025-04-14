@@ -1,16 +1,18 @@
 package kr.hhplus.be.server.queues.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 @Schema
 public class EnterRequest {
-  private final Long userId;
 
-  public EnterRequest(Long userId) {
+  private final UUID userId;
+
+  public EnterRequest(UUID userId) {
     this.userId = userId;
   }
 
-  public Long getUserId() {
+  public UUID getUserId() {
     return userId;
   }
 }
