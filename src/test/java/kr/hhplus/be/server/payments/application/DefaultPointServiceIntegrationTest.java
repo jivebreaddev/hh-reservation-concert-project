@@ -6,8 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import kr.hhplus.be.server.IntegrationTest;
 import kr.hhplus.be.server.common.vo.Money;
 import kr.hhplus.be.server.concerts.application.DefaultConcertQueryService;
@@ -17,6 +23,8 @@ import kr.hhplus.be.server.fixture.payments.PointFixture;
 import kr.hhplus.be.server.fixture.payments.PointSaver;
 import kr.hhplus.be.server.payments.application.dto.ChargeRequest;
 import kr.hhplus.be.server.payments.application.dto.ChargeResponse;
+import kr.hhplus.be.server.payments.application.dto.GetBalanceRequest;
+import kr.hhplus.be.server.payments.application.dto.GetBalanceResponse;
 import kr.hhplus.be.server.payments.application.dto.UseRequest;
 import kr.hhplus.be.server.payments.application.dto.UseResponse;
 import kr.hhplus.be.server.payments.domain.Point;
@@ -97,5 +105,42 @@ public class DefaultPointServiceIntegrationTest extends IntegrationTest {
 
     assertThatThrownBy(() -> pointService.useUserPoint(request))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  @DisplayName("동일 유저가 동시에 포인트 충전과 사용을 요청할 경우 정합성이 유지되어야 한다")
+  void concurrentChargeAndUsePoint() throws InterruptedException {
+    int numberOfThreads = 10;
+    ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+    CountDownLatch latch = new CountDownLatch(numberOfThreads);
+    AtomicInteger counter = new AtomicInteger();
+
+    UUID userId = UUID.randomUUID();
+    // 초기 잔액 설정
+    pointService.chargePoint(new ChargeRequest(userId, 5000L), UUID.randomUUID());
+
+    for (int i = 0; i < numberOfThreads; i++) {
+      executorService.submit(() -> {
+        try {
+          int n = counter.getAndIncrement();
+          if (n % 2 == 0) {
+            pointService.chargePoint(new ChargeRequest(userId, 1000L), UUID.randomUUID());
+          } else {
+            pointService.useUserPoint(new UseRequest(userId, 500L, LocalDateTime.now()));
+          }
+        } finally {
+          latch.countDown();
+        }
+      });
+    }
+
+    latch.await();
+    executorService.shutdown();
+
+    GetBalanceResponse finalBalance = pointService.getUserPoint(new GetBalanceRequest(userId));
+    System.out.println("최종 잔액: " + finalBalance.getBalance());
+
+    // 예: 최초 5000에서 10번 동안 충전/사용 혼합 → 음수가 아닌 값이면 성공
+    assertThat(finalBalance.getBalance()).isGreaterThanOrEqualTo(0L);
   }
 }

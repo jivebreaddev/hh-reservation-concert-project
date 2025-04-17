@@ -17,4 +17,6 @@ public interface QueueRepository {
   Queue save(Queue of);
 
   Optional<Queue> findByUserId(UUID userId);
+
+  List<Queue> findAllByUserId(UUID userId);
 }

@@ -3,8 +3,12 @@ package kr.hhplus.be.server.queues.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import kr.hhplus.be.server.IntegrationTest;
 import kr.hhplus.be.server.payments.infra.DefaultPaymentRepository;
 import kr.hhplus.be.server.queues.application.dto.EnterRequest;
@@ -70,5 +74,34 @@ public class DefaultQueueFacadeIntegrationTest extends IntegrationTest {
 
     assertThatThrownBy(() -> queueService.getQueueStatus(new EnterRequest(userId)))
         .isInstanceOf(RuntimeException.class);
+  }
+
+  @Test
+  @DisplayName("동일 유저 중복 진입 시 하나만 성공")
+  void concurrentQueueDuplicateEnterTest() throws InterruptedException {
+    int numberOfThreads = 10;
+    ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+    CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+    UUID userId = UUID.randomUUID();
+
+    for (int i = 0; i < numberOfThreads; i++) {
+      executorService.submit(() -> {
+        try {
+          queueService.queueUser(new QueueRequest(userId));
+        } catch (Exception e) {
+
+        } finally {
+          latch.countDown();
+        }
+      });
+    }
+
+    latch.await();
+    executorService.shutdown();
+
+    // 해당 유저에 대한 대기열은 하나만 있어야 함
+    List<Queue> queues = queueRepository.findAllByUserId(userId);
+    assertThat(queues).hasSize(1);
   }
 }

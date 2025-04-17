@@ -2,11 +2,17 @@ package kr.hhplus.be.server.payments.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import kr.hhplus.be.server.TestcontainersConfiguration;
 import kr.hhplus.be.server.config.jpa.JpaConfig;
 import kr.hhplus.be.server.fixture.payments.PaymentSaver;
+import kr.hhplus.be.server.payments.application.dto.PaymentRequest;
 import kr.hhplus.be.server.payments.domain.Payment;
 import kr.hhplus.be.server.payments.infra.DefaultPaymentRepository;
 import kr.hhplus.be.server.util.DatabaseCleanup;
@@ -66,5 +72,37 @@ public class DefaultPaymentServiceIntegrationTest {
     assertThat(saved.getAmount()).isEqualTo(999L);
 
   }
+  @Test
+  @DisplayName("동일 유저가 동시에 결제 요청 시도할 경우 하나만 성공해야 한다")
+  void paymentConcurrency() throws InterruptedException {
+    int numberOfThreads = 10;
+    ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+    CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
+    UUID userId = UUID.randomUUID();
+    long amount = 1000L;
+
+    List<Boolean> results = Collections.synchronizedList(new ArrayList<>());
+
+    for (int i = 0; i < numberOfThreads; i++) {
+      executorService.submit(() -> {
+        try {
+          try {
+            defaultPaymentService.sendPayment(userId, amount);
+            results.add(true);
+          } catch (Exception e) {
+            results.add(false);
+          }
+        } finally {
+          latch.countDown();
+        }
+      });
+    }
+
+    latch.await();
+    executorService.shutdown();
+
+    long successCount = results.stream().filter(result -> result).count();
+    assertThat(successCount).isEqualTo(1);
+  }
 }
