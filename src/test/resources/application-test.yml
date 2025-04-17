@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: hhplus
+  datasource:
+    username: application
+    password: application
+    hikari:
+      maximum-pool-size: 3
+      connection-timeout: 10000
+      max-lifetime: 60000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    generate-ddl: true
+    show-sql: false
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate.timezone.default_storage: NORMALIZE_UTC
+      hibernate.jdbc.time_zone: UTC
+      dialect: org.hibernate.dialect.MySQL8Dialect
+      jakarta.persistence.jdbc.driver: com.mysql.cj.jdbc.Driver
+
