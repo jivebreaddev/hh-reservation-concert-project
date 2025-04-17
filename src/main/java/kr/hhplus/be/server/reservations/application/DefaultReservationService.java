@@ -56,7 +56,7 @@ public class DefaultReservationService {
 
       eventPublisher.publishEvent(SeatPendingStatusEvent.of(request.getSeatId()));
 
-      return new TemporaryReservationResponse(reservation.getUserId(), reservation.getSeatId(),
+      return new TemporaryReservationResponse(reservation.getUserId(), reservation.getSeatId(), reservation.getId(),
           reservation.getReservationStatus());
     }
 

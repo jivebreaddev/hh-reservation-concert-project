@@ -3,6 +3,7 @@ package kr.hhplus.be.server.concerts.application;
 import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatPendingStatusEvent;
+import kr.hhplus.be.server.reservations.application.event.SeatReservedStatusEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -23,7 +24,7 @@ public class SeatStatusChangeListener {
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleReserved(SeatPendingStatusEvent event) {
+  public void handleReserved(SeatReservedStatusEvent event) {
     seatQueryUseCase.changeToReserved(event.getSeatId());
     // 실패시 재시도 필요
   }
