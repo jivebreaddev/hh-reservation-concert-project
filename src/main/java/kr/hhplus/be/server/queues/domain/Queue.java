@@ -18,7 +18,7 @@ public class Queue {
   @Id
   private UUID id;
 
-  @Column(name = "user_id", nullable = false, columnDefinition = "varchar(255)")
+  @Column(name = "user_id", columnDefinition = "binary(16)")
   private UUID userId;
 
   @Column(name = "status", nullable = false, columnDefinition = "varchar(255)")

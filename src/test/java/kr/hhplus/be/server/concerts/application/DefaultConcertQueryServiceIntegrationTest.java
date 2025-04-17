@@ -35,7 +35,7 @@ public class DefaultConcertQueryServiceIntegrationTest extends IntegrationTest {
 
   @BeforeEach
   void cleanDatabase() {
-    databaseCleanup.cleanUp(List.of());
+    databaseCleanup.cleanUp(List.of("concerts"));
     CONCERT_ID = saver.saveConcertData(DATES);
 
   }
@@ -73,13 +73,10 @@ public class DefaultConcertQueryServiceIntegrationTest extends IntegrationTest {
           getAvailableDatesResponseList(UUID.randomUUID());
       List<AvailableDate> dates = response.getAvailableDates();
 
-
       // Then
       assertAll(
           () -> assertThat(response.getAvailableDates()).isEmpty(),
-          () -> assertThat(response.getAvailableDates()).isInstanceOf(List.class),
-          () -> assertThat(response.getAvailableDates().get(0)).isInstanceOf(AvailableDate.class),
-          () -> assertThat(response.getAvailableDates().get(0).getRemainingSeats()).isEqualTo(100)
+          () -> assertThat(response.getAvailableDates()).isInstanceOf(List.class)
       );
 
     }

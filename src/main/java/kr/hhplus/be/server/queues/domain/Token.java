@@ -26,7 +26,7 @@ public class Token {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "expired_at", nullable = false)
+  @Column(name = "expired_at", nullable = true)
   private LocalDateTime expiredAt;
 
   protected Token(UUID uuid, UUID userId, UUID queueId) {
