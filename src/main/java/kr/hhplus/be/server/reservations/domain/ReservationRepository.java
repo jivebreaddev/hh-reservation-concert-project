@@ -9,11 +9,11 @@ public interface ReservationRepository {
   Reservation save(Reservation reservation);
 
   List<Reservation> findAllByUserId(UUID userId);
-  void deleteById(UUID reserationId);
+  void deleteById(UUID reservationId);
 
   Optional<Reservation> findByIdAndReservationStatus(UUID reservationId,
       ReservationStatus reservationStatus);
   List<Reservation> findAllByReservationStatus(ReservationStatus reservationStatus);
 
-  void deleteAllByIdsIn(List<UUID> reservationList);
+  void deleteAllByIdIn(List<UUID> reservationList);
 }

@@ -32,6 +32,9 @@ public class Seat {
     this.createdAt = createdAt;
   }
 
+  protected Seat() {
+  }
+
   public static Seat of(UUID id, UUID concertId, SeatStatus seatStatus, LocalDateTime createdAt){
     return new Seat(id, concertId, seatStatus, createdAt);
   }

@@ -31,6 +31,9 @@ public class Point {
     this.updatedAt = updatedAt;
   }
 
+  protected Point() {
+  }
+
   public static Point of(UUID userId, Long balance){
 
     return new Point(UUID.randomUUID(), userId, Money.of(balance), LocalDateTime.now());

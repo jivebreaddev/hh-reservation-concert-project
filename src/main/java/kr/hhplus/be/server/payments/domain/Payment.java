@@ -39,6 +39,9 @@ public class Payment {
     this.paymentStatus = paymentStatus;
   }
 
+  protected Payment() {
+  }
+
 
   public static Payment of(UUID id, UUID userId, Long amount, PaymentStatus paymentStatus){
     return new Payment(id, userId, amount, paymentStatus);

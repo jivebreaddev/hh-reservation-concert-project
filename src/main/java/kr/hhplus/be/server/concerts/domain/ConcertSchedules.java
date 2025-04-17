@@ -23,6 +23,9 @@ public class ConcertSchedules {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
+  protected ConcertSchedules() {
+  }
+
   public Long getAvailableCount() {
     return availableCount;
   }
