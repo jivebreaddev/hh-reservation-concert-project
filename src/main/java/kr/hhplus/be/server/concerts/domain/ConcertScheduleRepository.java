@@ -4,6 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ConcertScheduleRepository {
-  List<ConcertSchedules> findAllById(UUID uuid);
+  List<ConcertSchedules> findAllByConcertId(UUID uuid);
 
 }

@@ -33,13 +33,13 @@ class DefaultConcertQueryServiceTest {
     UUID concertId = UUID.randomUUID();
     List<ConcertSchedules> schedules = List.of(mock(ConcertSchedules.class));
 
-    when(concertScheduleRepository.findAllById(concertId)).thenReturn(schedules);
+    when(concertScheduleRepository.findAllByConcertId(concertId)).thenReturn(schedules);
 
     // when
     GetAvailableDatesResponse response = concertScheduleService.getAvailableDatesResponseList(concertId);
 
     // then
     assertThat(response).isNotNull();
-    verify(concertScheduleRepository).findAllById(concertId);
+    verify(concertScheduleRepository).findAllByConcertId(concertId);
   }
 }

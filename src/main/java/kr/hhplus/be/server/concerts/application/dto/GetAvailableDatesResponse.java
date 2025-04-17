@@ -20,4 +20,8 @@ public class GetAvailableDatesResponse {
             .map(AvailableDate::from)
             .toList());
   }
+
+  public List<AvailableDate> getAvailableDates() {
+    return availableDates;
+  }
 }

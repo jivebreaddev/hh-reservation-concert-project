@@ -17,6 +17,6 @@ public class DefaultConcertQueryService implements ConcertQueryUseCase {
   @Override
   @Transactional(readOnly = true)
   public GetAvailableDatesResponse getAvailableDatesResponseList(UUID concertId) {
-    return GetAvailableDatesResponse.of(concertScheduleRepository.findAllById(concertId));
+    return GetAvailableDatesResponse.of(concertScheduleRepository.findAllByConcertId(concertId));
   }
 }

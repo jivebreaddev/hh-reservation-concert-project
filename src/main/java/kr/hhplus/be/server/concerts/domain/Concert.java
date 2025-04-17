@@ -21,6 +21,23 @@ public class Concert {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
+  private Concert(UUID id, String venue) {
+    this.id = id;
+    this.venue = venue;
+    this.createdAt = LocalDateTime.now();
+  }
+
+  protected Concert() {
+  }
+
+  public static Concert of(String venue){
+    return new Concert(UUID.randomUUID(), venue);
+  }
+
+  public UUID getId() {
+    return id;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

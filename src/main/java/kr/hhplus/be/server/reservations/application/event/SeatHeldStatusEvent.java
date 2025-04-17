@@ -13,4 +13,8 @@ public class SeatHeldStatusEvent {
   public static SeatHeldStatusEvent of(UUID seatId) {
     return new SeatHeldStatusEvent(seatId);
   }
+
+  public UUID getSeatId() {
+    return seatId;
+  }
 }

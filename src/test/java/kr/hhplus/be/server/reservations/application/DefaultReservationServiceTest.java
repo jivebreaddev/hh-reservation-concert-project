@@ -133,7 +133,7 @@ class DefaultReservationServiceTest {
 
     reservationService.unbookTemporarySeat();
 
-    verify(reservationRepository).deleteAllByIdsIn(List.of(reservationId));
+    verify(reservationRepository).deleteAllByIdIn(List.of(reservationId));
     verify(eventPublisher).publishEvent(any(SeatAvailableStatusEvent.class));
   }
 }
