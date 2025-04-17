@@ -86,7 +86,7 @@ public void unbookTemporarySeat() {
 
   List<Reservation> reservations = reservationRepository.findAllByReservationStatus(
       ReservationStatus.PENDING);
-  reservationRepository.deleteAllByIdsIn(
+  reservationRepository.deleteAllByIdIn(
       reservations.stream()
           .map(Reservation::getId)
           .toList()
