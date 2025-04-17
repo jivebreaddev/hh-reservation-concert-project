@@ -53,7 +53,7 @@ public class DefaultPointService implements PointUseCase {
     Point point = pointRepository.findByUserId(request.getUserId())
         .orElseThrow(RuntimeException::new);
 
-    point.usePoint(Money.of(point.getBalance()), dateTimeFactory.getCurrentTime());
+    point.usePoint(Money.of(request.getAmount()), dateTimeFactory.getCurrentTime());
 
     Point saved = pointRepository.save(point);
 

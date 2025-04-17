@@ -37,6 +37,7 @@ public class Payment {
     this.userId = userId;
     this.amount = amount;
     this.paymentStatus = paymentStatus;
+    this.updatedAt = LocalDateTime.now();
   }
 
   protected Payment() {
@@ -53,6 +54,10 @@ public class Payment {
 
   public UUID getId() {
     return id;
+  }
+
+  public Long getAmount() {
+    return amount;
   }
 
   @Override
