@@ -10,4 +10,23 @@ public class PaymentRequest {
     this.userId = userId;
     this.amount = amount;
   }
+
+  public PaymentRequest() {
+  }
+
+  public UUID getUserId() {
+    return userId;
+  }
+
+  public Long getAmount() {
+    return amount;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
+  }
+
+  public void setAmount(Long amount) {
+    this.amount = amount;
+  }
 }

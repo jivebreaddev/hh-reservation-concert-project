@@ -2,6 +2,8 @@ package kr.hhplus.be.server.reservations.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ public class Reservation {
   private UUID seatId;
 
   @Column(name = "reservation_status", columnDefinition = "varchar(255)")
+  @Enumerated(EnumType.STRING)
   private ReservationStatus reservationStatus;
 
   @Column(name = "expires_at", nullable = false)

@@ -17,4 +17,12 @@ public class AvailableDate {
     return new AvailableDate(concertSchedules.getConcertDate(),
         concertSchedules.getAvailableCount());
   }
+
+  public LocalDateTime getDate() {
+    return date;
+  }
+
+  public Long getRemainingSeats() {
+    return remainingSeats;
+  }
 }

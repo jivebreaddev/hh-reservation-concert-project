@@ -12,7 +12,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
   public static final MySQLContainer<?> MYSQL_CONTAINER;
   public static Network sharedNetwork = Network.newNetwork();

@@ -36,7 +36,7 @@ public class DefaultSeatQueryService implements SeatQueryUseCase {
 
   @Override
   public void changeToHeld(UUID seatId) {
-    Seat seat = seatRepository.findByIdAndSeatStatus(seatId, SeatStatus.HELD)
+    Seat seat = seatRepository.findByIdAndSeatStatus(seatId, SeatStatus.AVAILABLE)
         .orElseThrow(RuntimeException::new);
 
     seat.toHeld();

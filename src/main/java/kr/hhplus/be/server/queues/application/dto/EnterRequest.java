@@ -5,9 +5,7 @@ import java.util.UUID;
 
 @Schema
 public class EnterRequest {
-
   private final UUID userId;
-
   public EnterRequest(UUID userId) {
     this.userId = userId;
   }
