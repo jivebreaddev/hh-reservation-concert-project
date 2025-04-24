@@ -30,7 +30,7 @@ public class TestcontainersConfiguration {
     String host = MYSQL_CONTAINER.getHost();
     int mappedPort = MYSQL_CONTAINER.getMappedPort(3306);
     System.setProperty("spring.datasource.url",
-        "jdbc:mysql://" + host + ":" + mappedPort + "/hhplus" + "?characterEncoding=UTF-8&serverTimezone=UTC");
+        "jdbc:p6spy:mysql://" + host + ":" + mappedPort + "/hhplus" + "?characterEncoding=UTF-8&serverTimezone=UTC");
     System.setProperty("spring.datasource.username", MYSQL_CONTAINER.getUsername());
     System.setProperty("spring.datasource.password", MYSQL_CONTAINER.getPassword());
   }
@@ -38,7 +38,7 @@ public class TestcontainersConfiguration {
   static void dynamicProperties(ApplicationContext applicationContext) {
     MYSQL_CONTAINER.start();
 
-    System.setProperty("spring.datasource.url", "jdbc:mysql://" + MYSQL_CONTAINER.getHost() + ":" + MYSQL_CONTAINER.getMappedPort(3306) + "/hhplus?characterEncoding=UTF-8&serverTimezone=UTC");
+    System.setProperty("spring.datasource.url", "jdbc:p6spy:mysql://" + MYSQL_CONTAINER.getHost() + ":" + MYSQL_CONTAINER.getMappedPort(3306) + "/hhplus?characterEncoding=UTF-8&serverTimezone=UTC");
     System.setProperty("spring.datasource.username", "test");
     System.setProperty("spring.datasource.password", "test");
 

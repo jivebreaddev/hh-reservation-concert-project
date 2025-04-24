@@ -47,6 +47,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("p6spy:p6spy:3.9.1")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
