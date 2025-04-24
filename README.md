@@ -425,60 +425,87 @@ userLock.unlock();
 ### A. 해결책: 낙관적 락
     - 애플리케이션에서 row에 version 값을 생성하여, update를 반영합니다. 실패시에, retry 혹은 반영되지않게 합니다.
     - retry 요청을 처리하지 않고 실패시키는 정책을 적용할 때, 성능적으로 비용이 적습니다.
-    - 충돌이 많이 발생하고 retry를 많이 적용해야된다면, 다른 방법으로 개선하는것이 좋습니다. 
-    - 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
-        - 10 개의 쓰레드를 병렬로 열어서 테스트하여 콘서트 예약이 하나가 성공하는 것을 테스트합니다.
-        - 1개 이상의 성공 하지 않는지 검증합니다.
-```java  
-private final ConcurrentHashMap<Long, Lock> userLocks = new ConcurrentHashMap<>();
-private Lock getUserLock(Long userId) {
-  return userLocks.computeIfAbsent(userId, id -> new ReentrantLock());
-}
-// 락을 통해 유저에 대한 동시성 제어
-if (userLock.tryLock()) {
-try {
-  // 비즈니스 로직
-} finally {
-userLock.unlock();
-}
+    - 충돌이 많이 발생하고 retry를 많이 적용해야된다면, 다른 방법으로 개선하는것이 좋습니다. (많은 요청에 의해 DB Connection 및 스레드 점유됨)
 
-```
+
 
 #### AS-IS
-##### A. 예약 시나리오
+
+##### A. 대상 유저 시나리오: 예약 시나리오
+- 공유 자원: 좌석
+- 설명: 여러 고객들이 한개의 좌석에 대해 예약하려고 할때, 한 고객이 트랜잭션이 완료되기 전에 다른 고객이 예약을 요청할 수 있다.
+```java  
+
+// 좌석에 대한 Version 필드 생성
+@Entity
+@Table(name = "seats")
+public class Seat {
+
+  @Column(name = "id", columnDefinition = "binary(16)")
+  @Id
+  private UUID id;
+  @Column(name = "concert_id", nullable = false)
+  private UUID concertId;
+  @Column(name = "status", nullable = false, columnDefinition = "varchar(255)")
+  @Enumerated(EnumType.STRING)
+  private SeatStatus seatStatus;
+  @Column(name = "created_at", nullable = false)
+  private LocalDateTime createdAt;
+
+  @Version
+  private Long version;
+```
 
 
 #### TO-BE
-##### A. 예약 시나리오
-
+##### A. 대상 유저 시나리오: 예약 시나리오
+- 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
+    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 콘서트 예약이 하나가 성공하는 것을 테스트합니다.
+    - 1개 이상의 성공 하지 않는지 검증합니다.
+      - 동시 요청에 대해서 1회만 반영해도되는 경우 낙관적락을 사용하고 나머지 요청을 실패 시킬수있다.
+      - 하지만, 낙관적 락으로 동시에 여러번 상태가 변경되어야 하는 경우에는 적절하지 않을 수 있다.
+        - 예시) 포인트 충전 1000 (성공), 포인트 사용 1000 (실패), 포인트 충전 1000(성공) -> 순서에 민감한 포인트 시나리오의 경우, 정합성을 유지하기 힘들어진다.
 
 
 ### B. 해결책: 비관적 락
     - 'SELECT ... FOR UPDATE' 를 사용하면, X-Lock을 사용하게되고, 다른 트랜잭션은 접근할 수 없습니다.
-    - 정합성 검증 절차 (포인트 충전 및 결제 시나리오: 모든 요청을 성공시키야 되는 경우)
-        - 10 개의 쓰레드를 병렬로 열어서 테스트하여 결제 요청이 모두 성공하는 것을 테스트합니다.
-        - 누락없이 모든 요청이 수행되는지 검증합니다.
-```java  
-private final ConcurrentHashMap<Long, Lock> userLocks = new ConcurrentHashMap<>();
-private Lock getUserLock(Long userId) {
-  return userLocks.computeIfAbsent(userId, id -> new ReentrantLock());
-}
-// 락을 통해 유저에 대한 동시성 제어
-if (userLock.tryLock()) {
-try {
-  // 비즈니스 로직
-} finally {
-userLock.unlock();
-}
+    - 즉각적 정합성이 필요한 경우 사용하게되고, 경합이 많은 경우 사용하면 좋지 않습니다. (Lock에 따른, 성능 저하 및 의도치 않은 데드락)
 
-```
+
 
 #### AS-IS
-##### A. 잔액 충전, 사용, 결제 시나리오
+##### A. 대상 유저 시나리오: 잔액 충전, 사용, 결제 시나리오
+- 공유 자원: 포인트 잔고
+- 설명: 
+  - 아래와 문제가 생길 수 있음, 
+      - (1) Lost Update(즉, 최종적 하나의 업데이트만 반영되는 이슈가 생김)
+        - 입금, 출금이 동시에?
+      - (2) 중복 이벤트 처리가 되지 않음
+        - 입급이 동시에 2번?
+        - 출금이 동시에 2번?
+```java  
 
+@Transactional
+public ChargeResponse chargePoint(ChargeRequest chargeRequest, UUID paymentId)
+
+@Transactional
+public GetBalanceResponse getUserPoint(GetBalanceRequest request) 
+
+@Transactional
+public UseResponse useUserPoint(UseRequest request)
+
+// 포인트를 조회하는 시점에 x-lock을 겁니다. 
+public interface PointRepository {
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  Optional<Point> findByUserId(UUID uuid);
+  
+```
 #### TO-BE
-##### A. 잔액 충전, 사용, 결제 시나리오
-
+##### A. 대상 유저 시나리오: 잔액 충전, 사용, 결제 시나리오
+- 비관적 락을 사용해, 각각의 요청들을 하나씩 처리하게 진행합니다.
+- 정합성 검증 절차 (포인트 충전 및 결제 시나리오: 모든 요청을 성공시키야 되는 경우)
+    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 결제 요청이 모두 성공하는 것을 테스트합니다.
+    - 누락없이 모든 요청이 수행되는지 검증합니다.
 
 ### C. 참고 자료: MySQL에서 다른 락들은 무엇이 있을까? 또한, 동시성제어는 어떻게 하고 있을까? 
 - S-Lock (공유락)
@@ -504,6 +531,7 @@ userLock.unlock();
 - 예를 들어, '좋아요' 와 같은 데이터를 낙관적 락으로 구현시에, 정합성 이슈가 생긴다.
 - 비관적 락으로 구현시에도 트래픽이 몰릴 시에 Timeout 으로 요청에 실패할 수 있습니다.
 
+- Write 와 Read가 헤비한 데이터에 경우 다른 처리 방법이 필요합니다.
 - MQ나 Redis를 활용한 요청 처리로 트래픽이 폭주할때, 버퍼를 확보하여 순서대로 정책에 맞춰 처리할 수 있습니다.
 
 # 3. 다중 서버의 동시성 이슈
