@@ -8,7 +8,7 @@ spring:
       maximum-pool-size: 3
       connection-timeout: 10000
       max-lifetime: 60000
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -21,3 +21,10 @@ spring:
       dialect: org.hibernate.dialect.MySQL8Dialect
       jakarta.persistence.jdbc.driver: com.mysql.cj.jdbc.Driver
 
+logging:
+  level:
+    p6spy: info
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
