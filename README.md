@@ -434,6 +434,17 @@ userLock.unlock();
 ##### A. 대상 유저 시나리오: 예약 시나리오
 - 공유 자원: 좌석
 - 설명: 여러 고객들이 한개의 좌석에 대해 예약하려고 할때, 한 고객이 트랜잭션이 완료되기 전에 다른 고객이 예약을 요청할 수 있다.
+
+
+
+#### TO-BE
+##### A. 대상 유저 시나리오: 예약 시나리오
+- 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
+    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 콘서트 예약이 하나가 성공하는 것을 테스트합니다.
+    - 1개 이상의 성공 하지 않는지 검증합니다.
+      - 동시 요청에 대해서 1회만 반영해도되는 경우 낙관적락을 사용하고 나머지 요청을 실패 시킬수있다.
+      - 하지만, 낙관적 락으로 동시에 여러번 상태가 변경되어야 하는 경우에는 적절하지 않을 수 있다.
+        - 예시) 포인트 충전 1000 (성공), 포인트 사용 1000 (실패), 포인트 충전 1000(성공) -> 순서에 민감한 포인트 시나리오의 경우, 정합성을 유지하기 힘들어진다.
 ```java  
 
 // 좌석에 대한 Version 필드 생성
@@ -456,16 +467,38 @@ public class Seat {
   private Long version;
 ```
 
+```java  
+@Test
+@DisplayName("동일 유저가 동시 예약 요청 시 하나만 성공해야 함")
+void concurrencyReserveTest() throws InterruptedException {
+  // Given
+  int numberOfThreads = 10;
+  ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+  CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
-#### TO-BE
-##### A. 대상 유저 시나리오: 예약 시나리오
-- 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
-    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 콘서트 예약이 하나가 성공하는 것을 테스트합니다.
-    - 1개 이상의 성공 하지 않는지 검증합니다.
-      - 동시 요청에 대해서 1회만 반영해도되는 경우 낙관적락을 사용하고 나머지 요청을 실패 시킬수있다.
-      - 하지만, 낙관적 락으로 동시에 여러번 상태가 변경되어야 하는 경우에는 적절하지 않을 수 있다.
-        - 예시) 포인트 충전 1000 (성공), 포인트 사용 1000 (실패), 포인트 충전 1000(성공) -> 순서에 민감한 포인트 시나리오의 경우, 정합성을 유지하기 힘들어진다.
+  // When
 
+  for (int i = 0; i < numberOfThreads; i++) {
+    executorService.submit(() -> {
+      try {
+        defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat));
+        results.add(true);
+      } catch (Exception e){
+        results.add(false);
+      } finally {
+        latch.countDown();
+      }
+    });
+  }
+
+  latch.await();
+  executorService.shutdown();
+  // When 한개만 통과하는 것이 성공
+  long successCount = results.stream().filter(result -> result).count();
+  assertThat(successCount).isEqualTo(1);
+
+}
+```
 
 ### B. 해결책: 비관적 락
     - 'SELECT ... FOR UPDATE' 를 사용하면, X-Lock을 사용하게되고, 다른 트랜잭션은 접근할 수 없습니다.
@@ -506,6 +539,38 @@ public interface PointRepository {
 - 정합성 검증 절차 (포인트 충전 및 결제 시나리오: 모든 요청을 성공시키야 되는 경우)
     - 10 개의 쓰레드를 병렬로 열어서 테스트하여 결제 요청이 모두 성공하는 것을 테스트합니다.
     - 누락없이 모든 요청이 수행되는지 검증합니다.
+```java  
+  @Test
+  @DisplayName("동일 유저가 동시 예약 요청 시 하나만 성공해야 함")
+  void concurrencyReserveTest() throws InterruptedException {
+  // Given
+  int numberOfThreads = 10;
+  ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+  CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+  // When
+  for (int i = 0; i < numberOfThreads; i++) {
+    executorService.submit(() -> {
+      try {
+        defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat));
+        results.add(true);
+      } catch (Exception e) {
+        results.add(false);
+      } finally {
+        latch.countDown();
+      }
+    });
+  }
+
+  latch.await();
+  executorService.shutdown();
+  // When 한개만 통과하는 것이 성공
+  long successCount = results.stream().filter(result -> result).count();
+  assertThat(successCount).isEqualTo(1);
+
+}
+```
+
 
 ### C. 참고 자료: MySQL에서 다른 락들은 무엇이 있을까? 또한, 동시성제어는 어떻게 하고 있을까? 
 - S-Lock (공유락)
