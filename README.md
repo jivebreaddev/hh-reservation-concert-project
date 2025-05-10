@@ -436,7 +436,6 @@ userLock.unlock();
 - 설명: 여러 고객들이 한개의 좌석에 대해 예약하려고 할때, 한 고객이 트랜잭션이 완료되기 전에 다른 고객이 예약을 요청할 수 있다.
 
 
-
 #### TO-BE
 ##### A. 대상 유저 시나리오: 예약 시나리오
 - 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
@@ -593,7 +592,7 @@ public interface PointRepository {
 
 ## 4. 대안
 ### A. 한계점: 비관적 락, 낙관적 락을 사용할때, 요구치의 성능을 맞추기 힘듬
-- 예를 들어, '좋아요' 와 같은 데이터를 낙관적 락으로 구현시에, 정합성 이슈가 생긴다.
+- 예를 들어, '좋아요' 와 같은 변경이 자주되는 데이터를 낙관적 락으로 구현시에, 정합성 이슈가 생긴다.
 - 비관적 락으로 구현시에도 트래픽이 몰릴 시에 Timeout 으로 요청에 실패할 수 있습니다.
 
 - Write 와 Read가 헤비한 데이터에 경우 다른 처리 방법이 필요합니다.
@@ -602,30 +601,151 @@ public interface PointRepository {
 # 3. 다중 서버의 동시성 이슈
 
 ## 1. 기술적인 문제 정의
+    - 다중 서버내 DB 공유 자원에 대한 동시성 이슈 해결
 
 ## 2. 개선 정의
+- 다중 서버가 분산락을 통해 DB에 동시성 문제가 생기는 요청을 제한합니다.
+  - 분산락을 도입하면서 생기는 이슈들에 대한 처리도 진행합니다.
+    - Redis가 실패 했을 경우를 대비한 처리 (HA 구성 혹은 애플리케이션 로직 구성)
+    - 데드락 예방을 위한, Lock Ordering 처리
+    - 락 임계 시간 제한(lease time) 및, 락에 대한 범위 줄이기
 
 ## 3. as-is, to-be 데이터 증거 측정
 
 ### AS-IS
 #### A. 예약 시나리오
 
+```java  
+    @Transactional
+    public TemporaryReservationResponse bookTemporarySeat(
+      TemporaryReservationRequest request
+    ) {
+    
+    }
+
+    @Transactional
+    public ReservationResponse bookSeat(
+      ReservationRequest request  
+    ) {
+    
+    }
+```
+- 성능 측정 필요
+
 #### B. 잔액 충전, 사용, 결제 시나리오
+```java  
+
+@Transactional
+public TemporaryReservationResponse bookTemporarySeat(
+    TemporaryReservationRequest request
+) {
+
+}
+@Transactional
+public ReservationResponse bookSeat(
+    ReservationRequest request) {
+
+}
+```
+- 성능 측정 필요
+
 
 ### TO-BE 
 #### A. 예약 시나리오 
+- 정합성 검증 대상 (콘서트 예약 시나리오: 하나의 요청만 성공시키면 되는 경우)
+    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 콘서트 예약이 하나가 성공하는 것을 테스트합니다.
+    - 1개 이상의 성공 하지 않는지 검증합니다.
+- 성능 측정 필요
+
+```java  
+@SimpleLock(lockKeys=[1,2,3])
+@Transactional
+public TemporaryReservationResponse bookTemporarySeat(
+    TemporaryReservationRequest request
+) {
+
+}
+@SimpleLock(lockKeys=[1,2,3])
+@Transactional
+public ReservationResponse bookSeat(
+    ReservationRequest request) {
+
+}
+
+```
+- simple lock 으로 해결 가능한지?
+  - simple lock으로 구현 가능하다. 
+    - 위에서도 낙관적 락을 이용한 best effort 전략으로 첫 요청 제외하고 다 실패 시키면서, 경쟁하는 자원(콘서트 좌석)에 대해 대기하는 스레드를 없애려고했다.
+    - 이 경우에도 simple lock으로 가볍게 처리하는 편이 좋아 보인다.
+- spin lock 으로 해결 가능한지?
+  - spin lock으로 해결 할 수 없다.
+    - 오래 걸리지 않는 자원이라면, 문제가 없지만, 임시 예약이 5분이상 이라고 한다면 그동안 spin lock이 소모하는 자원이 지나치게 클것으로 보인다.
+- pub/sub lock 으로 해결 가능한지?
+  - pub/sub 을 통해도 처리할 수 있다.
+    - 하지만, pub,sub 도 소모되는 자원이라서 최적이 아니다. 
 
 #### B. 잔액 충전, 사용, 결제 시나리오
 
-## 4. 장점, 단점
+- 정합성 검증 절차 (포인트 충전 및 결제 시나리오: 모든 요청을 성공시키야 되는 경우)
+    - 10 개의 쓰레드를 병렬로 열어서 테스트하여 결제 요청이 모두 성공하는 것을 테스트합니다.
+    - 누락없이 모든 요청이 수행되는지 검증합니다.
+- 성능 측정 필요
 
-| 장점 | 단점                                      |
-| --- |-----------------------------------------|
-| 정합성에 대한 자신감 | 서비스마다 TEST 와 검증 절차는 변경 비용이 됨            |
-| 서비스 안전성 | 검증절차에 대한 서비스마다 다른 구현으로 히스토리 따라가기 힘듬     |
-| 복잡한 트랜잭션 구성 가능 | 통합테스트를 구성함으로써, 필요한 구성요소 구성 필요 (테스트 복잡성) |
+```java  
+@DistributeLock(lockKeys=[1,2,3])
+@Transactional
+public ChargeResponse chargePoint(ChargeRequest chargeRequest, UUID paymentId)
+@DistributeLock(lockKeys=[1,2,3])
+@Transactional
+public GetBalanceResponse getUserPoint(GetBalanceRequest request)
+@DistributeLock(lockKeys=[1,2,3])
+@Transactional
+public UseResponse useUserPoint(UseRequest request)
 
-## 5. 대안
+```
+
+- simple lock 으로 해결 가능한지?
+    - simple lock으로 해결 할 수 없다.
+      - 충전이나, 포인트 사용 및 결제는 빠른 실패를 통해서, 즉각적인 일관성을 구현할 수 없다.
+- spin lock 으로 해결 가능한지?
+    - spin lock으로 해결 가능하다.
+      - 동일 요청이 많이 들어온다면, 서버 부하가 심해져 최적은 아니다. 
+      - 결제 요청은 오래 걸릴 수도 있어, 짧은 시간 동안 점유 해야하는 '임계 지점'이 길어 질 수 있따. 
+- pub/sub lock 으로 해결 가능한지?
+  - pub/sub lock은 해결 가능하다.
+    - pub/sub 에 대한 갯수에 대해서 실험하고 최대 허용치를 검증하고 사용한다면, 최적의 사용이라고 생각한다.
+    - 다만, pub/sub의 갯수가 지나치게 늘어날때를 대비한 처리도 필요해 보인다.
+
+
+## 4. 각 락들에 대한 장점, 단점
+
+| 구분 | Simple Lock | Spin Lock              | Pub/Sub Lock                    |
+| --- | --- |------------------------|---------------------------------|
+| 주요 명령어 | SET NX EX + DEL | SET NX EX + DEL (반복)   | SET NX EX + PUBLISH + SUBSCRIBE |
+| 대기 방식 | 대기 없음 (즉시 실패) | 폴링(Polling) 방식         | 이벤트 기반 대기                       |
+| 구현 복잡도 | 낮음 | 중간                     | 높음                              |
+| 서버 부하 | 매우 낮음 | 높음 (반복 요청)   | 중간 + 비교적 메모리 사용량 높음             |
+| 락 획득 확률 | 낮음 (한 번만 시도) | 높음 (반복 시도)             | 중간~높음                           |
+| 데드락 위험 | EX 만료 기반 해결 | EX + 최대 재시도            | EX + 메시지 누락 주의                  |
+| 적합한 환경 | 경쟁이 적은 환경, 짧은 작업 | 락 획득이 중요한 환경, 짧은 대기 시간 | 긴 대기 가능성, 서버 부하 감소 필요           |
+
+
+
+## 5. 참고 자료: Global Lock의 종류
+- Spin Lock
+  - 락을 획득 할때까지, 반복적인 락 획득 시도 
+  - 긴 대기가 예상 될때, 부하 심함
+  - 로직이 짧을 때 사용 
+- Simple Lock
+  - 기본적인 락 획득 시도하고 실패시, 실패 처리
+  - 로직이 짧을 때 사용
+  - 재시도 없이 best effort 전략 (낙관락과 비슷)
+- 분산 락
+  - redis 메시징을 통해 채널 구독하여 락에 대기처리
+  - 긴 대기 일때, 부하에 대한 처리 필요
+- Red Lock
+- Redis 는 어떻게 동시성을 보장하는 걸까?
+- Redis에서 중요한 설정들 
 
 # 4. 동시성 이슈를 피해가는 메시지 큐 도입
 
@@ -633,102 +753,33 @@ public interface PointRepository {
 
 ## 2. 개선 정의
 
-### 2. 보상 트랜잭션의 종류
-
-- 사가 패턴 논문에서 실패 처리에 대해서 두가지 복구 유형이 기술 되있다고 합니다.
-
-### A. 역방향 실패
-
-### B. 정방향 실패
-
-### 3. 정합성 검증 절차
-
-### a. 잠재적인 문제: 애플리케이션 로직 문제
-
-### a.1 검증되지 못한 보상 트랜잭션 문제 검증
-
-### a.2 적절한 종료 실패로 상태값이 처리 검증
-
-## 3. as-is, to-be 데이터 증거 측정
-
-## 4. 장점, 단점
-
-| 장점 | 단점                                      |
-| --- |-----------------------------------------|
-| 정합성에 대한 자신감 | 서비스마다 TEST 와 검증 절차는 변경 비용이 됨            |
-| 서비스 안전성 | 검증절차에 대한 서비스마다 다른 구현으로 히스토리 따라가기 힘듬     |
-| 복잡한 트랜잭션 구성 가능 | 통합테스트를 구성함으로써, 필요한 구성요소 구성 필요 (테스트 복잡성) |
-
-## 5. 대안
-
 # 5. 동시성 이슈를 피해가지 못하는 즉각적 일관성이 필요한 경우
 
-
-
 </details>
-
-
 <details>
-  <summary>13. 쿼리 개선안</summary>
+  <summary>13. 캐시로 DB 보호하고 성능 개선하기</summary>
 
-# 1. 콘서트 API
-## 1.  API 이름 
+# 1. REDIS 활용한 조회 성능 개선
 
-### A. 기술적인 문제 정의 (쿼리) 
+## A. 기술적인 문제 정의 (조회 성능 개선)
 
-### B. 개선 정의 (인덱스 검토)
-
-### C. as-is, to-be 데이터 증거 측정
-
-
-# 2. 결제/포인트 충전 API
-
-## 1.  API 이름
-
-### A. 기술적인 문제 정의 (쿼리)
-
-### B. 개선 정의 (인덱스 검토)
-
-### C. as-is, to-be 데이터 증거 측정
-
-
-</details>
-
-<details>
-  <summary>14. Redis를 통한 대기열 성능 개선안</summary>
-
-# 1. REDIS 활용한 대기열 성능 개선
-
-## A. 기술적인 문제 정의 (RDB 성능 제한 및 API 성능 기준 미충족)
-
-## B. 개선 정의 (개선 방향 검토)
+## B. 개선 정의 
 
 ## C. as-is, to-be 데이터 증거 측정
 
-</details>
 
-<details>
-  <summary>15. @Transactional과 외부 요청 분리 개선안</summary>
+## D. 참고 자료: 캐싱 전략
+- 레이어드 캐싱 전략
 
-# 1. REDIS 활용한 대기열 성능 개선
+- 데이터 불일치 문제
 
-## A. 기술적인 문제 정의 (RDB 성능 제한 및 API 성능 기준 미충족)
+- redis 가용성에 대한 처리 
 
-## B. 개선 정의 (개선 방향 검토)
+- 만료 정책
 
-## C. as-is, to-be 데이터 증거 측정
-
-</details>
-
-<details>
-  <summary>16. 배치로 상태 처리에 대한 개선안</summary>
-
-# 1. REDIS 활용한 대기열 성능 개선
-
-## A. 기술적인 문제 정의 (RDB 성능 제한 및 API 성능 기준 미충족)
-
-## B. 개선 정의 (개선 방향 검토)
-
-## C. as-is, to-be 데이터 증거 측정
+- 캐시 전략
 
 </details>
+
+
+
