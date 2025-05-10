@@ -1,0 +1,64 @@
+version: '2.4'
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=application
+      - MYSQL_USER=application
+      - MYSQL_PASSWORD=application
+      - MYSQL_DATABASE=hhplus
+
+  redis-master:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --port 6379 --requirepass mypass
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-h", "redis-master", "ping" ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    networks:
+      - redis-net
+  redis-replica:
+      image: redis:7.2
+      ports:
+        - "6380:6379"
+
+      command: redis-server --appendonly yes --port 6379 --slaveof redis-master 6379 --masterauth mypass
+      healthcheck:
+        test: [ "CMD", "redis-cli", "-h", "redis-replica", "ping" ]
+        interval: 10s
+        retries: 5
+        timeout: 5s
+      depends_on:
+        redis-master:
+          condition: service_healthy
+      networks:
+        - redis-net
+  redis-sentinel:
+      image: redis:7.2
+      ports:
+        - "26379:26379"
+      command: >
+        /usr/local/bin/redis-sentinel /etc/sentinel.conf
+      volumes:
+        - ./sentinel.conf:/etc/sentinel.conf
+      healthcheck:
+        test: [ "CMD", "redis-cli", "-h", "redis-sentinel", "ping" ]
+        interval: 10s
+        retries: 5
+        timeout: 5s
+      depends_on:
+        redis-master:
+          condition: service_healthy
+        redis-replica:
+          condition: service_healthy
+      networks:
+        - redis-net
+
+networks:
+  redis-net:
+    driver: bridge

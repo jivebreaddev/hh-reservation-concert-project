@@ -1,0 +1,5 @@
+sentinelServersConfig:
+  masterName: "mymaster"
+  sentinelAddresses:
+    - "redis://localhost:26379"
+  password: "mypass"

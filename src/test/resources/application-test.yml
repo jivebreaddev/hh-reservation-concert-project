@@ -15,11 +15,14 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: create
+      dialect: org.hibernate.dialect.MySQLDialect
     properties:
-      hibernate.timezone.default_storage: NORMALIZE_UTC
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
+      hibernate.hbm2ddl.auto: update
+      hibernate.format_sql: true
+      hibernate.show_sql: true
       hibernate.jdbc.time_zone: UTC
-      dialect: org.hibernate.dialect.MySQL8Dialect
-      jakarta.persistence.jdbc.driver: com.mysql.cj.jdbc.Driver
+
 
 logging:
   level:
@@ -28,3 +31,9 @@ decorator:
   datasource:
     p6spy:
       enable-logging: true
+  redis:
+    sentinel:
+      master: mymaster
+      nodes:
+        - localhost:26379
+    password: mypass
