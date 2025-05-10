@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -20,7 +21,6 @@ public class Point {
   private UUID userId;
   @Column(name = "balance", nullable = false, columnDefinition = "BIGINT")
   private Money balance;
-
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 

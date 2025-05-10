@@ -180,7 +180,7 @@ public class DefaultReservationServiceIntegrationTest extends IntegrationTest {
 
     latch.await();
     executorService.shutdown();
-    // When
+    // When 한개만 통과하는 것이 성공
     long successCount = results.stream().filter(result -> result).count();
     assertThat(successCount).isEqualTo(1);
 

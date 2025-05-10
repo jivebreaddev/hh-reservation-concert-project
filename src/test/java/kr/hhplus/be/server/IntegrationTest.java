@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = ServerApplication.class)
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, JpaConfig.class})
+@Import({TestcontainersConfiguration.class, JpaConfig.class, P6SpyConfig.class})
 public class IntegrationTest {
 
 

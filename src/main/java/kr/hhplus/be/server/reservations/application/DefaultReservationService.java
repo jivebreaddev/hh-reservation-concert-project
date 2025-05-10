@@ -9,7 +9,7 @@ import kr.hhplus.be.server.reservations.application.dto.ReservationResponse;
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationRequest;
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationResponse;
 import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
-import kr.hhplus.be.server.reservations.application.event.SeatPendingStatusEvent;
+import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
 import kr.hhplus.be.server.reservations.domain.Reservation;
 import kr.hhplus.be.server.reservations.domain.ReservationRepository;
 import kr.hhplus.be.server.reservations.domain.ReservationStatus;
@@ -49,14 +49,15 @@ public class DefaultReservationService {
       TemporaryReservationRequest request
   ) {
     if (seatClient.seatAvailable(request.getSeatId())) {
+      eventPublisher.publishEvent(SeatHeldStatusEvent.of(request.getSeatId()));
+
       Reservation reservation = reservationRepository.save(
           Reservation.createTemporaryReservation(UUID.randomUUID(),
               request.getUserId(), request.getSeatId(),
               PENDING));
 
-      eventPublisher.publishEvent(SeatPendingStatusEvent.of(request.getSeatId()));
-
-      return new TemporaryReservationResponse(reservation.getUserId(), reservation.getSeatId(), reservation.getId(),
+      return new TemporaryReservationResponse(reservation.getUserId(), reservation.getSeatId(),
+          reservation.getId(),
           reservation.getReservationStatus());
     }
 
@@ -67,34 +68,33 @@ public class DefaultReservationService {
   public ReservationResponse bookSeat(
       ReservationRequest request) {
     Reservation reservation = reservationRepository.findByIdAndReservationStatus(
-        request.getReservationId(), ReservationStatus.PENDING)
+            request.getReservationId(), ReservationStatus.PENDING)
         .orElseThrow(RuntimeException::new);
 
     reservation.createReservation();
 
     reservationRepository.save(reservation);
 
-    return new ReservationResponse(reservation.getId(),reservation.getUserId(), reservation.getSeatId(), reservation.getReservationStatus());
+    return new ReservationResponse(reservation.getId(), reservation.getUserId(),
+        reservation.getSeatId(), reservation.getReservationStatus());
   }
 
 
+  @Transactional
+  @Scheduled(fixedDelay = 3000L)
+  public void unbookTemporarySeat() {
 
+    List<Reservation> reservations = reservationRepository.findAllByReservationStatus(
+        ReservationStatus.PENDING);
+    reservationRepository.deleteAllByIdIn(
+        reservations.stream()
+            .map(Reservation::getId)
+            .toList()
+    );
 
-@Transactional
-@Scheduled(fixedDelay = 3000L)
-public void unbookTemporarySeat() {
+    reservations.forEach(
+        reservation -> eventPublisher.publishEvent(SeatAvailableStatusEvent.of(reservation.getId()))
+    );
 
-  List<Reservation> reservations = reservationRepository.findAllByReservationStatus(
-      ReservationStatus.PENDING);
-  reservationRepository.deleteAllByIdIn(
-      reservations.stream()
-          .map(Reservation::getId)
-          .toList()
-  );
-
-  reservations.forEach(
-      reservation -> eventPublisher.publishEvent(SeatAvailableStatusEvent.of(reservation.getId()))
-  );
-
-}
+  }
 }

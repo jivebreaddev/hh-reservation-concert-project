@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -24,6 +25,9 @@ public class Seat {
   private SeatStatus seatStatus;
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
+
+  @Version
+  private Long version;
 
   protected Seat(UUID id, UUID concertId, SeatStatus seatStatus, LocalDateTime createdAt) {
     this.id = id;
