@@ -46,8 +46,6 @@ public class TestcontainersConfiguration {
     String mysqlHost = COMPOSE_CONTAINER.getServiceHost("mysql", 3306);
     Integer mysqlPort = COMPOSE_CONTAINER.getServicePort("mysql", 3306);
 
-    System.out.println(mysqlHost);
-    System.out.println(mysqlPort);
     System.setProperty("spring.datasource.url",
         "jdbc:p6spy:mysql://" + mysqlHost + ":" +
             mysqlPort + "/hhplus?characterEncoding=UTF-8&serverTimezone=UTC"
