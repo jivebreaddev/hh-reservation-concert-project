@@ -17,9 +17,9 @@ public class RedisConfig {
     config.useSentinelServers()
         .setMasterName("mymaster")
         .addSentinelAddress("redis://localhost:26379")
-        .setPassword("mypass");
+        .setPassword("mypass")
+        .setCheckSentinelsList(false);
 
-    // ObjectMapper 연동한 Codec
     config.setCodec(new JsonJacksonCodec(objectMapper));
 
     return Redisson.create(config);
