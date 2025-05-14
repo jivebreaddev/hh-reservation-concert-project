@@ -768,7 +768,7 @@ public UseResponse useUserPoint(UseRequest request)
 ## C. as-is, to-be 데이터 증거 측정
 
 
-## D. 참고 자료: 캐싱 전략
+## D. 참고 자료: 캐싱 전략 && 로컬 캐시와 캐시
 - 레이어드 캐싱 전략
 
 - 데이터 불일치 문제
@@ -781,5 +781,201 @@ public UseResponse useUserPoint(UseRequest request)
 
 </details>
 
+<details>
+  <summary>14. 빠른 일간 인기도랭킹을 Redis 기반으로 구현</summary>
+
+# 1. redis ZSET을 활용한 일간 인기도 랭킹 
+
+## A. 기술적인 문제 정의 
+- 일간 콘서트 예약 랭킹을 redis의 zset으로 구현합니다.
+
+## B. 개선 정의
+- 일간 랭킹을 위한 redis key: "ranking:yyyyMMdd"에 "concertId"를 대상으로 예약 숫자를 증가 시킵니다.
+- TTL을 통해 일주일이 지난 key값들은 삭제합니다.
+
+![img.png](docs/REDIS.png)
 
 
+## C. as-is, to-be 데이터 증거 측정
+
+
+### AS-IS
+
+- 문제점
+  - 주문량 기반 콘서트 랭킹은 DB에서 하루 1회 배치로 계산되어야함 -> 주문의 수가 많다면 DB에 부하 심함
+  - 실시간 랭킹을 제공하지 못함
+  - 랭킹 조회 시 복잡한 SQL Join과 집계 쿼리로 인해 성능 저하
+
+
+### TO-BE
+
+- 해결
+  - DB 부하 없이 빠르게 응답
+  - Redis에서 실시간 랭킹을 바로 조회 가능
+
+- 개선 데이터 측정
+
+| 항목         | AS-IS          | TO-BE              | 개선 효과           |
+| ---------- | -------------- | ------------------ | --------------- |
+| 랭킹 업데이트 주기 | 1일 1회 배치       | 5분 단위 집계  | 이벤트 대응 시간 대폭 단축 |
+| 평균 조회 응답시간 | 800ms (DB 기준)  | 10ms (Redis 기준)    | 98% 이상 개선       |
+| 시스템 부하     | DB CPU 피크 70%  | Redis CPU 10% 내외   | DB 병목 제거        |
+
+
+- 한계점
+  - REDIS 도입으로 인한 복잡성 
+    - 메모리 사용량이 지나치게 되면, REDIS 비정상 종료됨 
+    - 이에 따른 모니터링, 클러스터링는 복잡성을 증가
+  - REDIS에 지나친 부하가 가는 경우 대비 필요
+    - REDIS 가 트래픽을 너무 많이 받는경우를 대비해, 비동기 처리를 하는 것도 대량 트래픽시 유리함
+
+## D. 참고 자료: Redis 자료구조 & 직렬화 및 역직렬화 설정 처리
+
+### 1. redis 자료 구조 및 활용 방안
+| 데이터 구조                        | 설명                            | 주요 명령어                                   | 사용 예시           |
+| ----------------------------- | ----------------------------- | ---------------------------------------- | --------------- |
+| **String**                    | 가장 단순한 키-값 구조 (문자열, 숫자, 바이너리) | `SET`, `GET`, `INCR`, `APPEND`           | 캐시, 카운터, 토큰     |
+| **List**                      | 순서가 있는 문자열 목록 (양방향 큐)         | `LPUSH`, `RPUSH`, `LPOP`, `LRANGE`       | 대기열, 로그, 채팅 메시지 |
+| **Set**                       | 중복 없는 원소 집합                   | `SADD`, `SREM`, `SMEMBERS`               | 태그, 유니크 유저 집합   |
+| **Sorted Set (ZSet)**         | score를 기준으로 정렬된 Set           | `ZADD`, `ZINCRBY`, `ZRANGE`, `ZREVRANGE` | 랭킹, 리더보드        |
+| **Hash**                      | 필드-값의 Map 구조                  | `HSET`, `HGET`, `HGETALL`                | 객체 저장 (유저, 상품)  |
+| **Bitmap**                    | 비트 단위로 저장되는 데이터 (0/1)         | `SETBIT`, `GETBIT`, `BITCOUNT`           | 출석 체크, 플래그 저장   |
+| **HyperLogLog**               | 대략적인 유니크 카운트                  | `PFADD`, `PFCOUNT`                       | 방문자 수 추정, UV 통계 |
+| **Geo**                       | 위치 기반 좌표 저장 (위도/경도)           | `GEOADD`, `GEORADIUS`, `GEODIST`         | 근처 매장 찾기, 위치 검색 |
+| **Stream**                    | append-only 로그 데이터 구조         | `XADD`, `XREAD`, `XGROUP`, `XACK`        | 이벤트 로그, 메시지 큐   |
+| **Pub/Sub**                   | 발행-구독 메시징 시스템                 | `PUBLISH`, `SUBSCRIBE`                   | 실시간 알림, 채팅      |
+| **Set with Expiry (Key TTL)** | 시간 기반 만료 설정                   | `EXPIRE`, `TTL`                          | 인증 코드, 세션 캐시    |
+
+### 2. redis 저장된 객체들에 대한 직렬화 및 역직렬화 설정 처리
+
+#### 1. ObjectMapper의 DeserializationFeature를 적절히 설정
+
+- serializer와 deserializer 에 대한 설정을 적절히 하여, 오류를 방지한다. 
+```java  
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+    mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+```
+- 
+
+#### 2. 버전 정보를 기반으로 한 Deserialization (수동 처리 방식)
+
+- 버전 정보를 annotation으로 생성하여, 필요하다면 수동 처리하여, deserializer를 설정할 수 있다. 
+
+```java  
+    Jackson2JsonRedisSerializer<Product> serializer = new Jackson2JsonRedisSerializer<>(Product.class);
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new SimpleModule().addDeserializer(Product.class, new VersionedDeserializer()));
+    serializer.setObjectMapper(objectMapper);
+```
+- 또한, null 값일때, 역직렬화 실패일때, 기본 객체를 전달 하도록 하여 오류를 핸들링 할 수 있다.
+
+```java  
+  try {
+    Product product = redisTemplate.opsForValue().get(productId);
+
+    if (product == null) {
+      System.out.println("Product not found in Redis");
+      return null;
+    }
+
+  } catch (SerializationException e) {
+    // 역직렬화 실패 시 처리
+    System.err.println("Error during deserialization: " + e.getMessage());
+    // 역직렬화 실패 시 기본 객체 반환
+    return new Product(productId, "default", 0);
+  } 
+```
+
+</details>
+
+
+<details>
+  <summary>15. 대기열 기능을 Redis 기반의 구현</summary>
+
+# 1. REDIS 활용한 대기열 성능 개선
+
+## A. 기술적인 문제 정의 
+- 콘서트 예약에 대한 대기열을 redis로 구현합니다.
+
+
+## B. 개선 정의 (개선 방향 검토)
+
+- Redis 대기열, 발급열 을 통해 토큰 발급을 처리한다.
+- consumer 를 통해 token 들을 발급한다. (콘서트 별 대기열이 존재함에 따라, 하나의 서비스로 제공하는 경우 이슈가 생길 수 있다.)
+
+![img.png](docs/queueStates.png)
+
+- Zset 으로 대기열을 구현한다.
+  - redis key: "1715600000000"(timestamp) 에 "userId"를 대상을 추가합니다.
+  - ZSet에서 Top-N 사용자만 처리
+- 컨슈머가 처리대상을 Set에 넣고 TTL 처리하여 발급열에 넣습니다.
+  - redis key: "userId"
+
+
+## C. as-is, to-be 데이터 증거 측정
+
+### AS-IS
+
+- 문제점
+    - 주문량 기반 콘서트 랭킹은 DB에서 하루 1회 배치로 계산되어야함 -> 주문의 수가 많다면 DB에 부하 심함
+    - 실시간 랭킹을 제공하지 못함
+    - 랭킹 조회 시 복잡한 SQL Join과 집계 쿼리로 인해 성능 저하
+
+
+### TO-BE
+
+- 해결
+    - DB 부하 없이 빠르게 대용량 트래픽 처리 가능
+    - 성능 + 안정성 + 운영 효율성 모두 향상됨
+
+- 개선 데이터 측정
+
+  | 항목          | AS-IS (DB 기반)      | TO-BE (Redis 기반 대기열)      | 개선 효과               |
+  | ----------- |--------------------| ------------------------- | ------------------- |
+  | 요청 처리 구조    | 동시 DB 트랜잭션 시도      | 대기열 기반 순차 처리              | TPS 분산 및 DB 부하 완화   |
+  | 최대 처리 TPS   | ~ 500 TPS          | 10,000 TPS 이상 (Redis 기준)  | 20배 이상 향상 가능        |
+  | 응답 속도 평균    | ~1000ms (DB 부하 의존) | 10\~50ms (Redis 응답 시간 기준) | 최대 95% 이상 응답속도 단축   |
+  | 선착순 정확도     | DB 락 또는 ROW 순번에 의존 | ZSet score 기반 정확한 순번 부여   | 논쟁 없는 선착순 구현 가능     |
+  | 시스템 안정성     | 트래픽 집중 시 병목 발생     | Redis 단일 처리 → 처리율 조절 가능   | 트래픽 피크 흡수 가능        |
+
+
+- 한계점
+    - 복수 노드 환경 운영 어려움
+      - 클러스터 시 Key 분산으로 인해 전역 순서 관리가 어려움
+      - 이에 따른 모니터링, 클러스터링는 복잡성을 증가
+    - 스케일아웃 한계
+      - Redis는 단일 스레드이기 때문에 극단적인 트래픽에서는 병목 가능성 존재
+    - 모니터링 도구 부족
+      - 대기열 에 대한 대시보드 부족 (카프카는 대시보드 지원)
+
+
+## D. 참고 자료: Spring Statemachine으로 event 처리하기
+
+```java
+@Override
+public void configure(StateMachineStateConfigurer<QueueState, QueueEvent> states) throws Exception {
+    states
+        .withStates()
+        .initial(QueueState.WAITING)
+        .state(QueueState.VALIDATING)
+        .state(QueueState.TOKEN_ISSUED)
+        .state(QueueState.REJECTED);
+}
+
+@Override
+public void configure(StateMachineTransitionConfigurer<QueueState, QueueEvent> transitions) throws Exception {
+    transitions
+        .withExternal().source(QueueState.WAITING).target(QueueState.VALIDATING).event(QueueEvent.REQUEST_RECEIVED)
+        .and()
+        .withExternal().source(QueueState.VALIDATING).target(QueueState.TOKEN_ISSUED).event(QueueEvent.VALIDATION_PASSED)
+        .and()
+        .withExternal().source(QueueState.VALIDATING).target(QueueState.REJECTED).event(QueueEvent.VALIDATION_FAILED);
+}
+```
+- 다음과 같은 Event에 따른 Spring statemachine 을 추가함으로써, 상태 전이의 정확한 정의를 코드 베이스내에서 일관성있게 사용할 수 있다.
+- 상태 추적이 쉬워지고, 확장성과 테스트도 쉽다.
+
+
+</details>
