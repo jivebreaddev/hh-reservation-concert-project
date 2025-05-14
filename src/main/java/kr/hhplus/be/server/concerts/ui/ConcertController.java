@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.concerts.application.dto.GetAvailableDatesRequest;
 import kr.hhplus.be.server.concerts.application.dto.GetAvailableDatesResponse;
+import kr.hhplus.be.server.concerts.application.dto.GetRankingResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Tag(name = "콘서트 조회 API", description = "예약 가능한 좌석 조회 API")
 public interface ConcertController {
@@ -13,4 +15,6 @@ public interface ConcertController {
   ResponseEntity<GetAvailableDatesResponse> getAvailableDates(
       GetAvailableDatesRequest getAvailableDatesRequest);
 
+  @GetMapping("/rankings")
+  ResponseEntity<GetRankingResponse> getConcertRankings();
 }
