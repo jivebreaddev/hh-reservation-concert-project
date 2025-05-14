@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.concerts.infra;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.concerts.domain.ConcertRanking;
@@ -21,6 +22,8 @@ public class DefaultRankingRepository implements SeatRankingRepository {
   public void increaseScore(String concertKey, String dateKey, int amount) {
     RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet("ranking:" + dateKey);
     ranking.addScore(concertKey, amount);
+    ranking.expire(Duration.ofDays(3));
+
   }
 
   @Override
