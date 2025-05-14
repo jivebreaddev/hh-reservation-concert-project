@@ -2,12 +2,8 @@ package kr.hhplus.be.server.payments.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -15,11 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import kr.hhplus.be.server.IntegrationTest;
-import kr.hhplus.be.server.common.vo.Money;
-import kr.hhplus.be.server.concerts.application.DefaultConcertQueryService;
 import kr.hhplus.be.server.config.date.DateTimeFactory;
-import kr.hhplus.be.server.fixture.concerts.ConcertFixtureSaver;
-import kr.hhplus.be.server.fixture.payments.PointFixture;
 import kr.hhplus.be.server.fixture.payments.PointSaver;
 import kr.hhplus.be.server.payments.application.dto.ChargeRequest;
 import kr.hhplus.be.server.payments.application.dto.ChargeResponse;
@@ -114,19 +106,22 @@ public class DefaultPointServiceIntegrationTest extends IntegrationTest {
     ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
     CountDownLatch latch = new CountDownLatch(numberOfThreads);
     AtomicInteger counter = new AtomicInteger();
+    AtomicInteger chargeSuccessCount = new AtomicInteger();
+    AtomicInteger useSuccessCount = new AtomicInteger();
 
-    UUID userId = UUID.randomUUID();
-    // 초기 잔액 설정
-    pointService.chargePoint(new ChargeRequest(userId, 5000L), UUID.randomUUID());
-
+    // 10개의 쓰레드 중 절반은 충전(+1000), 절반은 사용(-500)을 시도함.
+    // 실제 실행 순서는 충전 전에 사용 요청이 들어가면 실패할 수도 있음.
     for (int i = 0; i < numberOfThreads; i++) {
       executorService.submit(() -> {
         try {
           int n = counter.getAndIncrement();
           if (n % 2 == 0) {
             pointService.chargePoint(new ChargeRequest(userId, 1000L), UUID.randomUUID());
+            chargeSuccessCount.incrementAndGet();
+
           } else {
             pointService.useUserPoint(new UseRequest(userId, 500L, LocalDateTime.now()));
+            useSuccessCount.incrementAndGet();
           }
         } finally {
           latch.countDown();
@@ -138,9 +133,17 @@ public class DefaultPointServiceIntegrationTest extends IntegrationTest {
     executorService.shutdown();
 
     GetBalanceResponse finalBalance = pointService.getUserPoint(new GetBalanceRequest(userId));
-    System.out.println("최종 잔액: " + finalBalance.getBalance());
 
-    // 예: 최초 5000에서 10번 동안 충전/사용 혼합 → 음수가 아닌 값이면 성공
-    assertThat(finalBalance.getBalance()).isGreaterThanOrEqualTo(0L);
+    // 예: 포인트가 부족할 경우 실패 이후 롤백 되고, 성공된 케이스들로 잔액을 추정
+    assertThat(finalBalance.getBalance()).isEqualTo(2500L);
+    long expectedBalance = (1000L * chargeSuccessCount.get()) - (500L * useSuccessCount.get());
+    assertThat(finalBalance.getBalance()).isEqualTo(expectedBalance);
   }
+
+
+//  충전이 먼저 수행되고 사용이 나중에 수행된다면 총 5000 → 7500 → 5000 → 2500으로 내려감.
+//
+//  그런데 실제 실행 순서는 비결정적이며, 충전 전에 사용 요청이 들어가면 실패할 수도 있음.
+//
+//  따라서, 현재 구조라면 사용 요청이 실패할 수도 있다
 }

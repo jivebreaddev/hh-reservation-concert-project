@@ -1,7 +1,10 @@
+import io.gatling.gradle.GatlingRunTask
+
 plugins {
 	java
 	id("org.springframework.boot") version "3.4.1"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("io.gatling.gradle") version "3.13.5"
 }
 
 fun getGitHash(): String {
@@ -15,7 +18,7 @@ version = getGitHash()
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -34,6 +37,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
 	// Swagger
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
@@ -47,10 +51,33 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("p6spy:p6spy:3.9.1")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+
+	gatlingImplementation("io.gatling:gatling-core:3.13.5")
+	gatlingImplementation("io.gatling:gatling-http:3.13.5")
+	gatlingImplementation("io.gatling.highcharts:gatling-charts-highcharts:3.13.5")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
 	systemProperty("user.timezone", "UTC")
+}
+
+
+gatling {
+	jvmArgs = listOf("-server", "-Xms512M", "-Xmx512M")
+	systemProperties = mapOf("file.encoding" to "UTF-8")
+}
+
+sourceSets["gatling"].java.srcDir("src/gatling/java")
+sourceSets["gatling"].resources.srcDir("src/gatling/resources")
+
+tasks.withType<GatlingRunTask> {
+	jvmArgs = listOf(
+			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+			"--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED"
+	)
 }

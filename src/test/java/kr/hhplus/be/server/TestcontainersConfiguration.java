@@ -1,57 +1,93 @@
 package kr.hhplus.be.server;
 
 import jakarta.annotation.PreDestroy;
-import java.util.Arrays;
+import java.io.File;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Properties;
+import javax.sql.DataSource;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.containers.Network;
+import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
 public class TestcontainersConfiguration {
+  private static final DockerComposeContainer<?> COMPOSE_CONTAINER;
 
-  public static final MySQLContainer<?> MYSQL_CONTAINER;
-  public static Network sharedNetwork = Network.newNetwork();
   static {
-    MYSQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
-        .withDatabaseName("hhplus")
-        .withUsername("test")
-        .withPassword("test")
-        .withExposedPorts(3306)
-        .withNetwork(sharedNetwork)
-        .withNetworkAliases("mysql")
-        .waitingFor(Wait.forListeningPort());
+    COMPOSE_CONTAINER = new DockerComposeContainer<>(new File("src/test/resources/docker-compose.yml"))
+        .withExposedService("mysql", 3306, Wait.forListeningPort())
+        .withExposedService("redis-sentinel", 26379, Wait.forListeningPort())
+        .withLocalCompose(true)
+        .withTailChildContainers(true)
+        .withRemoveImages(DockerComposeContainer.RemoveImages.LOCAL)
+        .withStartupTimeout(Duration.ofMinutes(2))
+        .withOptions("--compatibility")
+        .withEnv(Map.of(
+            "MYSQL_ROOT_PASSWORD", "application",
+            "MYSQL_DATABASE", "hhplus",
+            "MYSQL_USER", "application",
+            "MYSQL_PASSWORD", "application"
+        ));
 
-    MYSQL_CONTAINER.start();
-    String host = MYSQL_CONTAINER.getHost();
-    int mappedPort = MYSQL_CONTAINER.getMappedPort(3306);
-    System.setProperty("spring.datasource.url",
-        "jdbc:mysql://" + host + ":" + mappedPort + "/hhplus" + "?characterEncoding=UTF-8&serverTimezone=UTC");
-    System.setProperty("spring.datasource.username", MYSQL_CONTAINER.getUsername());
-    System.setProperty("spring.datasource.password", MYSQL_CONTAINER.getPassword());
+    COMPOSE_CONTAINER.start();
+
   }
   @DynamicPropertySource
-  static void dynamicProperties(ApplicationContext applicationContext) {
-    MYSQL_CONTAINER.start();
+  static void dynamicProperties(DynamicPropertyRegistry registry) {
+    // MySQL 연결 정보 설정
+    String mysqlHost = COMPOSE_CONTAINER.getServiceHost("mysql", 3306);
+    Integer mysqlPort = COMPOSE_CONTAINER.getServicePort("mysql", 3306);
 
-    System.setProperty("spring.datasource.url", "jdbc:mysql://" + MYSQL_CONTAINER.getHost() + ":" + MYSQL_CONTAINER.getMappedPort(3306) + "/hhplus?characterEncoding=UTF-8&serverTimezone=UTC");
-    System.setProperty("spring.datasource.username", "test");
-    System.setProperty("spring.datasource.password", "test");
+    System.setProperty("spring.datasource.url",
+        "jdbc:p6spy:mysql://" + mysqlHost + ":" +
+            mysqlPort + "/hhplus?characterEncoding=UTF-8&serverTimezone=UTC"
+    );
+    System.setProperty("spring.datasource.username", "application");
+    System.setProperty("spring.datasource.password", "application");
 
-    System.setProperty("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
-    System.setProperty("spring.jpa.properties.hibernate.timezone.default_storage", "NORMALIZE_UTC");
-    System.setProperty("spring.jpa.properties.hibernate.jdbc.time_zone", "UTC");
-
-    System.setProperty("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
+    String redisHost = COMPOSE_CONTAINER.getServiceHost("redis-sentinel", 26379);
+    Integer redisPort = COMPOSE_CONTAINER.getServicePort("redis-sentinel", 26379);
+    System.setProperty("spring.redis.sentinel.master", "mymaster");
+    System.setProperty("spring.redis.sentinel.nodes", redisHost + ":" + redisPort);
+    System.setProperty("spring.redis.password", "mypass");
   }
   @PreDestroy
-  public void preDestroy() {
-    if (MYSQL_CONTAINER.isRunning()) {
-      MYSQL_CONTAINER.stop();
-    }
+  public void stop() {
+    COMPOSE_CONTAINER.stop();
+  }
+
+  @Primary
+  @Profile("test")
+  @Bean("testCustomEntityManagerFactory")
+  public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(final DataSource datasource){
+    HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+    vendorAdapter.setGenerateDdl(true);
+    vendorAdapter.setShowSql(true);
+
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+
+    factory.setJpaVendorAdapter(vendorAdapter);
+    factory.setPackagesToScan("kr.hhplus.be.server");
+    factory.setDataSource(datasource);
+    // Hibernate 관련 설정
+    Properties jpaProperties = new Properties();
+    jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+    jpaProperties.put("hibernate.hbm2ddl.auto", "update");
+    System.setProperty("hibernate.timezone.default_storage", "NORMALIZE_UTC");
+
+    jpaProperties.put("hibernate.format_sql", "true");
+    jpaProperties.put("hibernate.show_sql", "true");
+    jpaProperties.put("hibernate.jdbc.time_zone", "UTC");
+
+    factory.setJpaProperties(jpaProperties);
+    return factory;
   }
 }

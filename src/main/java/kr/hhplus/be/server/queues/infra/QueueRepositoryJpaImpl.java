@@ -45,4 +45,9 @@ public class QueueRepositoryJpaImpl implements QueueRepository {
   public Optional<Queue> findByUserId(UUID userId) {
     return defaultQueueRepository.findByUserId(userId);
   }
+
+  @Override
+  public List<Queue> findAllByUserId(UUID userId) {
+    return defaultQueueRepository.findAllByUserId(userId);
+  }
 }

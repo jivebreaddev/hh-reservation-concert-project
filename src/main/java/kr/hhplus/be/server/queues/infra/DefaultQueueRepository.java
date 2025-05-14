@@ -15,4 +15,7 @@ public interface DefaultQueueRepository extends JpaRepository<Queue, UUID> {
   Long countByQueueStatus(QueueStatus queueStatus);
 
   Optional<Queue> findByUserId(UUID userId);
+
+
+  List<Queue> findAllByUserId(UUID userId);
 }
