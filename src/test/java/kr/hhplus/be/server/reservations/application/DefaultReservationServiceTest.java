@@ -44,6 +44,7 @@ class DefaultReservationServiceTest {
   @InjectMocks
   private DefaultReservationService reservationService;
 
+  private static final UUID concertId = UUID.randomUUID();
   @Test
   @DisplayName("유저 ID로 예약 목록을 조회하면 예약 응답이 반환된다")
   void getReservations() {
@@ -62,11 +63,11 @@ class DefaultReservationServiceTest {
   void bookTemporarySeat() {
     UUID seatId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
-    TemporaryReservationRequest request = new TemporaryReservationRequest(userId, seatId);
+    TemporaryReservationRequest request = new TemporaryReservationRequest(userId, seatId, concertId);
 
     when(seatClient.seatAvailable(seatId)).thenReturn(true);
 
-    Reservation saved = Reservation.createTemporaryReservation(UUID.randomUUID(), userId, seatId, 5L);
+    Reservation saved = Reservation.createTemporaryReservation(UUID.randomUUID(), userId, seatId, concertId, 5L);
     when(reservationRepository.save(any())).thenReturn(saved);
 
     TemporaryReservationResponse response = reservationService.bookTemporarySeat(request);
@@ -80,7 +81,7 @@ class DefaultReservationServiceTest {
   void bookTemporarySeatNotAvailable() {
     UUID seatId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
-    TemporaryReservationRequest request = new TemporaryReservationRequest(userId, seatId);
+    TemporaryReservationRequest request = new TemporaryReservationRequest(userId, seatId, concertId);
 
     when(seatClient.seatAvailable(seatId)).thenReturn(false);
 
@@ -94,7 +95,7 @@ class DefaultReservationServiceTest {
     UUID reservationId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
     UUID seatId = UUID.randomUUID();
-    Reservation reservation = Reservation.createTemporaryReservation(reservationId, userId, seatId, 5L);
+    Reservation reservation = Reservation.createTemporaryReservation(reservationId, userId, seatId, concertId, 5L);
 
     when(reservationRepository.findByIdAndReservationStatus(reservationId, ReservationStatus.PENDING))
         .thenReturn(Optional.of(reservation));
@@ -125,7 +126,7 @@ class DefaultReservationServiceTest {
   void unbookTemporarySeatPublishEvents() {
     UUID reservationId = UUID.randomUUID();
     Reservation reservation = Reservation.createTemporaryReservation(
-        reservationId, UUID.randomUUID(), UUID.randomUUID(), 0L
+        reservationId, UUID.randomUUID(), UUID.randomUUID(), concertId, 0L
     );
 
     when(reservationRepository.findAllByReservationStatus(ReservationStatus.PENDING))
