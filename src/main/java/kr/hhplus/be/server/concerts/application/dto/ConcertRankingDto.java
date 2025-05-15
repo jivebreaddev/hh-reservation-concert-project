@@ -18,4 +18,16 @@ public class ConcertRankingDto {
   public static ConcertRankingDto of(ConcertRanking ranking) {
     return new ConcertRankingDto(ranking.getConcert(), ranking.getDate(), ranking.getCounts());
   }
+
+  public String getConcert() {
+    return concert;
+  }
+
+  public String getDate() {
+    return date;
+  }
+
+  public Long getCounts() {
+    return counts;
+  }
 }
