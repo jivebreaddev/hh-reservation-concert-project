@@ -951,7 +951,9 @@ public UseResponse useUserPoint(UseRequest request)
       - 대기열 에 대한 대시보드 부족 (카프카는 대시보드 지원)
 
 
-## D. 참고 자료: Spring Statemachine으로 event 처리하기
+## D. 참고 자료: Spring Statemachine으로 event 처리하기 && 대기열 정책의 종류
+
+### 1. Statemachine 으로 상태 처리하기
 
 ```java
 @Override
@@ -977,5 +979,22 @@ public void configure(StateMachineTransitionConfigurer<QueueState, QueueEvent> t
 - 다음과 같은 Event에 따른 Spring statemachine 을 추가함으로써, 상태 전이의 정확한 정의를 코드 베이스내에서 일관성있게 사용할 수 있다.
 - 상태 추적이 쉬워지고, 확장성과 테스트도 쉽다.
 
+
+### 2. 대기열의 정책은 무엇이 있는가?
+
+- 놀이기구 정책
+  - N초 마다 M 명의 입장객을 받는 정책
+  - 허용하는 토큰을 TTL을 걸고 만료시킨다.
+  - 장점
+    - 구현의 간단함
+  - 단점
+    - 동적인 트래픽 관리가 불가함 (가능한 인원보다 많은 트래픽)
+- 은행 창구 정책
+  - M명만 허용하고, M(전체 허용 인원수) -N(현재 입장객)을 허용하는 정책
+  - 허용하는 토큰을 관리하고 만료시켜줘야한다.
+  - 장점
+    - 구현이 복잡함
+  - 단점
+    - 동적인 트래픽 관리 가능하고 M을 장애 상황에 제한 시켜서 서비스 상태를 복구 할 수 있다.
 
 </details>
