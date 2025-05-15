@@ -23,6 +23,15 @@ public class ConcertFixture {
     );
   }
 
+  public static ConcertSchedules createSoldoutConcertSchedule(UUID concertId, LocalDateTime availableDate) {
+    return ConcertSchedules.of(
+        UUID.randomUUID(),
+        concertId,
+        0L,
+        availableDate
+    );
+  }
+
   public static Seat createSeat(UUID concertId) {
     return Seat.of(
         UUID.randomUUID(),

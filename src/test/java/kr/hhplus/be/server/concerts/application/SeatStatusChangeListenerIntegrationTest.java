@@ -5,7 +5,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import kr.hhplus.be.server.IntegrationTest;
@@ -15,11 +17,15 @@ import kr.hhplus.be.server.concerts.application.dto.GetAvailableSeatsResponse;
 import kr.hhplus.be.server.fixture.concerts.ConcertFixtureSaver;
 import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
+import kr.hhplus.be.server.reservations.application.event.SeatReservedStatusEvent;
 import kr.hhplus.be.server.util.DatabaseCleanup;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RKeys;
+import org.redisson.api.RScoredSortedSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -28,8 +34,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
 
-  @Autowired
-  DatabaseCleanup databaseCleanup;
+
   @Autowired
   ConcertFixtureSaver saver;
   @Autowired
@@ -42,7 +47,8 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
   TransactionTemplate transactionTemplate;
   @Autowired
   SeatStatusChangeListener seatStatusChangeListener;
-
+  @Autowired
+  private RedissonClient redissonClient;
   private static UUID CONCERT_ID;
   private static List<LocalDateTime> DATES = List.of(
       LocalDateTime.of(2030, 4, 17, 12, 0),
@@ -72,4 +78,35 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
         .getAvailableSeats();
     assertThat(seats).hasSize(49);
   }
+
+  @Test
+  @DisplayName("예약 이벤트 1개 발행시, 랭킹 정보가 업데이트 됩니다.")
+  void testReservedConcertIncreaseRankings() {
+    // Given
+    GetAvailableSeatsResponse response = defaultSeatQueryService
+        .getAvailableSeatsResponseList(new GetAvailableSeatsRequest(CONCERT_ID));
+    UUID seat = response.getAvailableSeats().stream()
+        .map(AvailableSeat::getSeatId)
+        .findFirst().get();
+    String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+    // When
+    seatStatusChangeListener.handleHeld(SeatHeldStatusEvent.of(seat));
+    seatStatusChangeListener.handleReserved(SeatReservedStatusEvent.of(seat, CONCERT_ID));
+
+    // Then
+    RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet("ranking:" + today);
+
+    Double score = ranking.getScore(CONCERT_ID.toString());
+    System.out.println("Score of concertKey (" + CONCERT_ID.toString() + "): " + score);
+    RKeys keys = redissonClient.getKeys();
+    Iterable<String> allKeys = keys.getKeys();
+
+    for (String key : allKeys) {
+      System.out.println("Key: " + key);
+    }
+
+    assertThat(ranking.getScore(CONCERT_ID.toString())).isEqualTo(1.0);
+  }
+
 }
