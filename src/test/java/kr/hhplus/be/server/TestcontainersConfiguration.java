@@ -66,7 +66,7 @@ public class TestcontainersConfiguration {
 
   @Primary
   @Profile("test")
-  @Bean("testCustomEntityManagerFactory")
+  @Bean("customEntityManagerFactory")
   public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(final DataSource datasource){
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
     vendorAdapter.setGenerateDdl(true);
