@@ -22,6 +22,9 @@ public class Reservation {
   @Column(name = "seat_id", columnDefinition = "binary(16)")
   private UUID seatId;
 
+  @Column(name = "concertId", columnDefinition = "binary(16)")
+  private UUID concertId;
+
   @Column(name = "reservation_status", columnDefinition = "varchar(255)")
   @Enumerated(EnumType.STRING)
   private ReservationStatus reservationStatus;
@@ -32,11 +35,12 @@ public class Reservation {
   @Column(name = "reserved_at", nullable = true)
   private LocalDateTime reservedAt;
 
-  protected Reservation(UUID id, UUID userId, UUID seatId, ReservationStatus reservationStatus,
+  protected Reservation(UUID id, UUID userId, UUID seatId, UUID concertId, ReservationStatus reservationStatus,
       LocalDateTime expiresAt) {
     this.id = id;
     this.userId = userId;
     this.seatId = seatId;
+    this.concertId = concertId;
     this.reservationStatus = reservationStatus;
     this.expiresAt = expiresAt;
   }
@@ -45,9 +49,9 @@ public class Reservation {
 
   }
 
-  public static Reservation createTemporaryReservation(UUID id, UUID userId, UUID seat_id,
+  public static Reservation createTemporaryReservation(UUID id, UUID userId, UUID seatId, UUID concertId,
       Long minutes) {
-    return new Reservation(id, userId, seat_id, ReservationStatus.PENDING,
+    return new Reservation(id, userId, seatId, concertId, ReservationStatus.PENDING,
         LocalDateTime.now().plusMinutes(minutes));
   }
 
@@ -61,6 +65,10 @@ public class Reservation {
 
   public UUID getSeatId() {
     return seatId;
+  }
+
+  public UUID getConcertId() {
+    return concertId;
   }
 
   public ReservationStatus getReservationStatus() {

@@ -38,6 +38,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	// redis
+	implementation("org.redisson:redisson-spring-boot-starter:3.46.0")
 
 	// Swagger
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
@@ -45,6 +47,8 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+
 
 	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -10,6 +10,7 @@ import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationRequ
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationResponse;
 import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
+import kr.hhplus.be.server.reservations.application.event.SeatReservedStatusEvent;
 import kr.hhplus.be.server.reservations.domain.Reservation;
 import kr.hhplus.be.server.reservations.domain.ReservationRepository;
 import kr.hhplus.be.server.reservations.domain.ReservationStatus;
@@ -53,7 +54,7 @@ public class DefaultReservationService {
 
       Reservation reservation = reservationRepository.save(
           Reservation.createTemporaryReservation(UUID.randomUUID(),
-              request.getUserId(), request.getSeatId(),
+              request.getUserId(), request.getSeatId(), request.getConcertId(),
               PENDING));
 
       return new TemporaryReservationResponse(reservation.getUserId(), reservation.getSeatId(),
@@ -75,6 +76,8 @@ public class DefaultReservationService {
 
     reservationRepository.save(reservation);
 
+    eventPublisher.publishEvent(SeatReservedStatusEvent.of(reservation.getSeatId(), reservation.getConcertId()));
+
     return new ReservationResponse(reservation.getId(), reservation.getUserId(),
         reservation.getSeatId(), reservation.getReservationStatus());
   }
@@ -93,7 +96,7 @@ public class DefaultReservationService {
     );
 
     reservations.forEach(
-        reservation -> eventPublisher.publishEvent(SeatAvailableStatusEvent.of(reservation.getId()))
+        reservation -> eventPublisher.publishEvent(SeatAvailableStatusEvent.of(reservation.getSeatId()))
     );
 
   }

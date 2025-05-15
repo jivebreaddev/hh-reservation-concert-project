@@ -76,4 +76,15 @@ public class ConcertFixtureSaver {
 
     return concert.getId();
   }
+
+  @Transactional
+  public UUID soldOutConcertDate(LocalDateTime dateTime) {
+    Concert concert = ConcertFixture.createConcert();
+    entityManager.persist(concert);
+
+    entityManager.persist(
+        ConcertFixture.createSoldoutConcertSchedule(concert.getId(), dateTime));
+
+    return concert.getId();
+  }
 }

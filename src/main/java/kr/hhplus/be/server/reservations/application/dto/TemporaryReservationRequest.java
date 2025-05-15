@@ -7,10 +7,12 @@ import java.util.UUID;
 public class TemporaryReservationRequest {
   private final UUID userId;
   private final UUID seatId;
+  private final UUID concertId;
 
-  public TemporaryReservationRequest(UUID userId, UUID seatId) {
+  public TemporaryReservationRequest(UUID userId, UUID seatId, UUID concertId) {
     this.userId = userId;
     this.seatId = seatId;
+    this.concertId = concertId;
   }
 
   public UUID getUserId() {
@@ -19,5 +21,9 @@ public class TemporaryReservationRequest {
 
   public UUID getSeatId() {
     return seatId;
+  }
+
+  public UUID getConcertId() {
+    return concertId;
   }
 }

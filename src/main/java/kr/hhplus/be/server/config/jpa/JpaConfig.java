@@ -25,7 +25,6 @@ import org.springframework.transaction.PlatformTransactionManager;
     entityManagerFactoryRef = "customEntityManagerFactory"
 )
 public class JpaConfig {
-
     @Bean("customEntityManagerFactory")
     @Profile("default")
     public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(final DataSource datasource){

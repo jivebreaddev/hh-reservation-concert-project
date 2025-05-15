@@ -65,7 +65,7 @@ public class DefaultReservationServiceIntegrationTest extends IntegrationTest {
 
     // When
     TemporaryReservationResponse reservationResponse = defaultReservationService.bookTemporarySeat(
-        new TemporaryReservationRequest(userId, seat));
+        new TemporaryReservationRequest(userId, seat, CONCERT_ID));
 
     //Then
     assertAll(
@@ -91,7 +91,7 @@ public class DefaultReservationServiceIntegrationTest extends IntegrationTest {
 
     // When
     TemporaryReservationResponse temporaryReservationResponse = defaultReservationService.bookTemporarySeat(
-        new TemporaryReservationRequest(userId, seat));
+        new TemporaryReservationRequest(userId, seat, CONCERT_ID));
     ReservationResponse reservationResponse = defaultReservationService.bookSeat(
         new ReservationRequest(temporaryReservationResponse.getReservationId()));
 
@@ -116,7 +116,7 @@ public class DefaultReservationServiceIntegrationTest extends IntegrationTest {
         .map(AvailableSeat::getSeatId)
         .findFirst().get();
     UUID userId = UUID.randomUUID();
-    defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat));
+    defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat, CONCERT_ID));
 
     // When
     GetReservationResponse reservationResponse = defaultReservationService.getReservations(
@@ -168,7 +168,7 @@ public class DefaultReservationServiceIntegrationTest extends IntegrationTest {
     for (int i = 0; i < numberOfThreads; i++) {
       executorService.submit(() -> {
         try {
-          defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat));
+          defaultReservationService.bookTemporarySeat(new TemporaryReservationRequest(userId, seat, CONCERT_ID));
           results.add(true);
         } catch (Exception e){
           results.add(false);

@@ -25,9 +25,10 @@ class ReservationTest {
       UUID id = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
       UUID seatId = UUID.randomUUID();
+      UUID concertId = UUID.randomUUID();
 
       // WHEN
-      Reservation original = Reservation.createTemporaryReservation(id, userId, seatId, 5L);
+      Reservation original = Reservation.createTemporaryReservation(id, userId, seatId, concertId, 5L);
 
       // THEN
       assertThat(original.getReservationStatus()).isEqualTo(ReservationStatus.PENDING);
@@ -41,9 +42,11 @@ class ReservationTest {
       UUID id = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
       UUID seatId = UUID.randomUUID();
+      UUID concertId = UUID.randomUUID();
 
       // WHEN
-      Reservation original = Reservation.createTemporaryReservation(id, userId, seatId, 5L);
+      Reservation original = Reservation.createTemporaryReservation(id, userId, seatId, concertId,
+          5L);
       original.createReservation();
       // THEN
       assertThat(original.getReservedAt()).isNotNull();
