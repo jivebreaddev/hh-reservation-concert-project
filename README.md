@@ -795,6 +795,13 @@ public UseResponse useUserPoint(UseRequest request)
 
 ![img.png](docs/REDIS.png)
 
+- 매진시에 추가 점수를 부여합니다. 
+  - 특정 날짜의 콘서트가 매진 될 시에 100000 을 부여합니다.
+  - 중복으로 추가 점수 부여를 방지하기 위해 bucket을 체크합니다.
+
+![img.png](docs/soldout.png)
+
+
 
 ## C. as-is, to-be 데이터 증거 측정
 
