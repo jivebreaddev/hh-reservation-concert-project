@@ -8,10 +8,7 @@ import kr.hhplus.be.server.queues.domain.Token;
 import kr.hhplus.be.server.queues.domain.TokenRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-public interface DefaultTokenRepository extends JpaRepository<Token, UUID> {
+public interface DefaultTokenRepository {
 
-  List<Token> findByExpiredAtAfter(LocalDateTime now);
-
-  void deleteAllByIdIn(List<UUID> list);
   Optional<Token> findByUserId(UUID userId);
 }
