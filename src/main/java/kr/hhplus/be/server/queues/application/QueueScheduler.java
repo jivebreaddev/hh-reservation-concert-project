@@ -7,12 +7,9 @@ import org.springframework.stereotype.Service;
 public class QueueScheduler {
 
   private final QueueAdmissionUseCase admissionUseCase;
-  private final TokenExpirationUseCase tokenExpirationUseCase;
 
-  protected QueueScheduler(QueueAdmissionUseCase admissionUseCase,
-      TokenExpirationUseCase tokenExpirationUseCase) {
+  protected QueueScheduler(QueueAdmissionUseCase admissionUseCase) {
     this.admissionUseCase = admissionUseCase;
-    this.tokenExpirationUseCase = tokenExpirationUseCase;
   }
 
   @Scheduled(fixedDelay = 3000)
@@ -20,8 +17,4 @@ public class QueueScheduler {
     admissionUseCase.processQueue();
   }
 
-  @Scheduled(fixedDelay = 3000)
-  private void expiredTokens() {
-    tokenExpirationUseCase.expireToken();
-  }
 }
