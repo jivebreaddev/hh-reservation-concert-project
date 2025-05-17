@@ -7,7 +7,6 @@ import kr.hhplus.be.server.queues.domain.TokenRepository;
 
 public class RedisTokenRepository implements TokenRepository {
 
-
   @Override
   public Token save(Token token) {
     return null;
