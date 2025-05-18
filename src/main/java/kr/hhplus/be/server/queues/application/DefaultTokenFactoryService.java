@@ -23,9 +23,4 @@ public class DefaultTokenFactoryService implements TokenFactoryUseCase {
         .orElseGet(() -> tokenRepository.save(Token.of(userId, queueId)));
   }
 
-  @Override
-  public Token getToken(UUID tokenId) {
-    return tokenRepository.findById(tokenId)
-        .orElseThrow(RuntimeException::new);
-  }
 }
