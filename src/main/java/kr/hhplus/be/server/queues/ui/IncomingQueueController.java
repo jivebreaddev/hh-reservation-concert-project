@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "대기열 API", description = "대기열/접근 가능 조회 API")
 public interface IncomingQueueController {
-
-  @Operation(summary = "대기열 토큰", description = "접근 가능한지 조회합니다.")
+  @Operation(summary = "예약 접근 가능 조회", description = "접근을 위해 ")
   ResponseEntity<QueueResponse> queueUser(@RequestBody QueueRequest queueRequest);
 
-  @Operation(summary = "예약 접근 가능 조회", description = "접근을 위해 토큰을 발급합니다.")
+  @Operation(summary = "대기열 토큰", description = "접근 가능한지 조회합니다.")
   ResponseEntity<EnterResponse> enterUser(@RequestBody EnterRequest enterRequest);
 
 }
