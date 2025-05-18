@@ -7,6 +7,5 @@ public interface TokenFactoryUseCase {
 
   Token createToken(UUID userId, UUID queueId);
 
-  Token getToken(UUID tokenId);
 
 }
