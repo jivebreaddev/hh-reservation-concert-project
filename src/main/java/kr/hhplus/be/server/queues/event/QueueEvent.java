@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.queues.domain;
+package kr.hhplus.be.server.queues.event;
 
 public enum QueueEvent {
   PROCESS,
