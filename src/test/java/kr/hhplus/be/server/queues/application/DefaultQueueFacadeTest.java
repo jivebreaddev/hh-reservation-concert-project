@@ -10,6 +10,7 @@ import kr.hhplus.be.server.queues.application.dto.EnterResponse;
 import kr.hhplus.be.server.queues.application.dto.QueueRequest;
 import kr.hhplus.be.server.queues.application.dto.QueueResponse;
 import kr.hhplus.be.server.queues.domain.Queue;
+import kr.hhplus.be.server.queues.domain.QueuePosition;
 import kr.hhplus.be.server.queues.domain.QueueStatus;
 import kr.hhplus.be.server.queues.domain.Token;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +41,6 @@ class DefaultQueueFacadeTest {
     UUID tokenId = UUID.randomUUID();
 
     Queue queue = mock(Queue.class);
-    when(queue.getQueueStatus()).thenReturn(QueueStatus.WAITING);
     when(queue.getId()).thenReturn(queueId);
 
     Token token = mock(Token.class);
@@ -56,7 +56,6 @@ class DefaultQueueFacadeTest {
 
     // THEN
     assertThat(response.getUserId()).isEqualTo(userId);
-    assertThat(response.getQueueStatus()).isEqualTo(QueueStatus.WAITING);
     assertThat(response.getToken()).isEqualTo(tokenId);
   }
 
@@ -66,10 +65,10 @@ class DefaultQueueFacadeTest {
     // GIVEN
     UUID userId = UUID.randomUUID();
 
-    Queue queue = mock(Queue.class);
+    QueuePosition queue = mock(QueuePosition.class);
     when(queue.getQueueStatus()).thenReturn(QueueStatus.PROCESSING);
 
-    when(queueFactoryUseCase.getQueue(userId)).thenReturn(queue);
+     when(queueFactoryUseCase.getQueueStatus(userId)).thenReturn(queue);
 
     EnterRequest request = new EnterRequest(userId);
 
