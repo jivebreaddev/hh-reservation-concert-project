@@ -42,7 +42,7 @@ public class RedisQueueRepository implements QueueRepository {
       RBatch batch = redissonClient.createBatch();
       RMapAsync<String, Queue> queueMap = batch.getMap(RedisKey.QUEUE_MAP.key());
 
-      processeingQueues.forEach(q -> queueMap.putAsync(q.getId().toString(), q));
+      processeingQueues.forEach(q -> queueMap.putAsync(q.getUserId().toString(), q));
 
       batch.execute();
       return processeingQueues;
@@ -125,13 +125,16 @@ public class RedisQueueRepository implements QueueRepository {
   }
 
   @Override
-  public Optional<QueuePosition> findAllByUserId(UUID userId) {
+  public Optional<QueuePosition> findQueueStatusByUserId(UUID userId) {
     try {
       RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet(
           RedisKey.WAIT_QUEUE.key());
       Integer rank = ranking.rank(String.valueOf(userId));
 
-      return Optional.of(QueuePosition.of(QueueStatus.WAITING, rank.longValue()));
+      RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
+      Queue userQueue = queueMap.get(userId.toString());
+
+      return Optional.of(QueuePosition.of(userQueue.getQueueStatus(), rank.longValue()));
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
       return Optional.empty();
