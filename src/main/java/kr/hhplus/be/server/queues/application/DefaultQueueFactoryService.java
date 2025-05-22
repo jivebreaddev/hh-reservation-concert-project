@@ -18,8 +18,12 @@ public class DefaultQueueFactoryService implements QueueFactoryUseCase {
   @Override
   public Queue createQueue(UUID userId) {
     return queueRepository.findByUserId(userId)
-        .orElseGet(() -> queueRepository.saveAll(Queue.of(userId)));
+        .orElseGet(() -> queueRepository.save(Queue.of(userId)));
   }
 
-
+  @Override
+  public QueuePosition getQueueStatus(UUID userId) {
+    return queueRepository.findQueueStatusByUserId(userId)
+        .orElseThrow(RuntimeException::new);
+  }
 }

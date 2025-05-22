@@ -1,11 +1,9 @@
 package kr.hhplus.be.server.queues.application;
 
 import java.util.UUID;
-import kr.hhplus.be.server.queues.domain.Queue;
 import kr.hhplus.be.server.queues.domain.Token;
 import kr.hhplus.be.server.queues.domain.TokenRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DefaultTokenFactoryService implements TokenFactoryUseCase {
@@ -17,7 +15,6 @@ public class DefaultTokenFactoryService implements TokenFactoryUseCase {
   }
 
   @Override
-  @Transactional
   public Token createToken(UUID userId, UUID queueId) {
     return tokenRepository.findByUserId(userId)
         .orElseGet(() -> tokenRepository.save(Token.of(userId, queueId)));

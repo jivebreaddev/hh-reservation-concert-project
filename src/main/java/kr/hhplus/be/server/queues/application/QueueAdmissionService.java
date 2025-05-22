@@ -1,36 +1,31 @@
 package kr.hhplus.be.server.queues.application;
 
 import java.util.List;
-import kr.hhplus.be.server.queues.domain.Queue;
+import java.util.UUID;
 import kr.hhplus.be.server.queues.domain.QueueRepository;
-import kr.hhplus.be.server.queues.domain.QueueStatus;
+import kr.hhplus.be.server.queues.domain.Token;
+import kr.hhplus.be.server.queues.domain.TokenRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class QueueAdmissionService implements QueueAdmissionUseCase {
 
   private final QueueRepository queueRepository;
+  private final TokenRepository tokenRepository;
 
-  private static final Long ALLOWED_COUNTS = 10L;
-
-  protected QueueAdmissionService(QueueRepository queueRepository) {
+  protected QueueAdmissionService(QueueRepository queueRepository, TokenRepository tokenRepository) {
     this.queueRepository = queueRepository;
+    this.tokenRepository = tokenRepository;
   }
 
   @Override
-  @Transactional
   public void processQueue() {
-    Long processed = queueRepository.countByQueueStatus(QueueStatus.PROCESSING);
-
-    List<Queue> queues = queueRepository.findByQueueStatusOrderByCreatedAtAsc(QueueStatus.WAITING);
-
-    List<Queue> processeingQueues = queues
+    List<UUID> queues = queueRepository.findAllByCreatedAtAsc()
         .stream()
-        .limit(ALLOWED_COUNTS - processed)
-        .map(Queue::toProcessing)
+        .map(queue -> queue.getId())
         .toList();
+    List<Token> tokens = tokenRepository.findByUserIds(queues);
 
-    queueRepository.saveAll(processeingQueues);
+    queueRepository.toActiveToken(tokens);
   }
 }

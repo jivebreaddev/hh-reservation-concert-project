@@ -6,8 +6,8 @@ import kr.hhplus.be.server.queues.application.dto.EnterResponse;
 import kr.hhplus.be.server.queues.application.dto.QueueRequest;
 import kr.hhplus.be.server.queues.application.dto.QueueResponse;
 import kr.hhplus.be.server.queues.domain.Queue;
+import kr.hhplus.be.server.queues.domain.QueuePosition;
 import kr.hhplus.be.server.queues.domain.Token;
-import org.springframework.transaction.annotation.Transactional;
 
 @Facade
 public class QueueFacade {
@@ -21,18 +21,16 @@ public class QueueFacade {
     this.tokenFactoryUseCase = tokenFactoryUseCase;
   }
 
-  @Transactional
   public QueueResponse queueUser(QueueRequest queueRequest) {
     Queue queue = queueFactoryUseCase.createQueue(queueRequest.getUserId());
     Token token = tokenFactoryUseCase.createToken(queueRequest.getUserId(), queue.getId());
 
-    return new QueueResponse(queueRequest.getUserId(), queue.getQueueStatus(), token.getId());
+    return new QueueResponse(queueRequest.getUserId(), token.getId());
   }
 
-  @Transactional(readOnly = true)
   public EnterResponse getQueueStatus(EnterRequest enterRequest) {
-    Queue queue =  queueFactoryUseCase.getQueue(enterRequest.getUserId());
+    QueuePosition queuePosition =  queueFactoryUseCase.getQueueStatus(enterRequest.getUserId());
 
-    return new EnterResponse(enterRequest.getUserId(), queue.getQueueStatus());
+    return new EnterResponse(enterRequest.getUserId(), queuePosition.getQueueStatus(), queuePosition.getOrder());
   }
 }

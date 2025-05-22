@@ -8,4 +8,5 @@ public interface QueueFactoryUseCase {
 
   Queue createQueue(UUID userId);
 
+  QueuePosition getQueueStatus(UUID userId);
 }
