@@ -2,15 +2,16 @@ package kr.hhplus.be.server.queues.infra;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.queues.domain.Queue;
 import kr.hhplus.be.server.queues.domain.QueuePosition;
 import kr.hhplus.be.server.queues.domain.QueueRepository;
-import kr.hhplus.be.server.queues.domain.QueueStatus;
 import kr.hhplus.be.server.queues.domain.Token;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RBatch;
@@ -20,6 +21,7 @@ import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RSet;
 import org.redisson.api.RSetCacheAsync;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.protocol.ScoredEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -54,17 +56,17 @@ public class RedisQueueRepository implements QueueRepository {
   }
 
   @Override
-  public Queue save(Queue processingQueue) {
+  public Queue save(Queue waitingQueue) {
 
     try {
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
-      queueMap.put(processingQueue.getId().toString(), processingQueue);
+      queueMap.put(waitingQueue.getId().toString(), waitingQueue);
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
 
       return null;
     }
-    return processingQueue;
+    return waitingQueue;
   }
 
   @Override
@@ -80,10 +82,15 @@ public class RedisQueueRepository implements QueueRepository {
           RedisKey.WAIT_QUEUE.key());
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
 
-      return ranking.entryRange(0, enqueuedSize.intValue() - 1)
+      Set<String> keys = ranking.entryRange(0, enqueuedSize.intValue() - 1)
           .stream()
-          .map(rank -> queueMap.get(rank.getValue()))
-          .filter(Objects::nonNull)
+          .map(ScoredEntry::getValue)
+          .collect(Collectors.toSet());
+
+      Map<String, Queue> queueMapEntries = queueMap.getAll(keys);
+
+      return queueMapEntries.values()
+          .stream()
           .collect(Collectors.toList());
 
     } catch (Exception e) {
@@ -119,7 +126,6 @@ public class RedisQueueRepository implements QueueRepository {
       batch.execute();
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
-
     }
 
   }
