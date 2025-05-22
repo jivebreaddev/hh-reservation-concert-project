@@ -23,6 +23,25 @@ spring:
 redis:
   queue:
     initial-size: 1000
+resilience4j:
+  bulkhead:
+    instances:
+      handleQueueEventBulkhead:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 500ms
+
+  circuitbreaker:
+    instances:
+      handleQueueEventCB:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        slidingWindowSize: 10
+
+  retry:
+    instances:
+      handleQueueEventRetry:
+        maxAttempts: 3
+        waitDuration: 200ms
 ---
 spring.config.activate.on-profile: local, test
 
@@ -51,3 +70,22 @@ spring:
 redis:
   queue:
     initial-size: 1000
+resilience4j:
+  bulkhead:
+    instances:
+      handleQueueEventBulkhead:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 500ms
+
+  circuitbreaker:
+    instances:
+      handleQueueEventCB:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        slidingWindowSize: 10
+
+  retry:
+    instances:
+      handleQueueEventRetry:
+        maxAttempts: 3
+        waitDuration: 200ms

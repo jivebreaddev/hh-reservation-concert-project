@@ -47,7 +47,7 @@ public class PaymentFacadeIntegrationTest {
   }
 
   @Test
-  @DisplayName("성공한 결제 후 포인트 충전")
+  @DisplayName("성공한 결제 후 포인트 충전, 그리고 결제 이벤트 발행")
   void chargePointAfterPaymentSuccess() {
     ChargeRequest request = new ChargeRequest(userId, 1000L);
     ChargeResponse response = paymentFacade.chargePoint(request);
@@ -56,7 +56,7 @@ public class PaymentFacadeIntegrationTest {
   }
 
   @Test
-  @DisplayName("성공한 결제 후 포인트 충전")
+  @DisplayName("실패한 결제 후 포인트 충전, 그리고 결제 이벤트 발행")
   void chargePointAfterPaymentFailure() {
     ChargeRequest request = new ChargeRequest(userId, 999L);
 
