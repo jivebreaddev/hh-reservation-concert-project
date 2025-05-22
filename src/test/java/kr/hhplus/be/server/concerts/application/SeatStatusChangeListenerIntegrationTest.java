@@ -90,13 +90,9 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
     RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet("ranking:" + today);
 
     Double score = ranking.getScore(CONCERT_ID.toString());
-    System.out.println("Score of concertKey (" + CONCERT_ID.toString() + "): " + score);
     RKeys keys = redissonClient.getKeys();
     Iterable<String> allKeys = keys.getKeys();
 
-    for (String key : allKeys) {
-      System.out.println("Key: " + key);
-    }
 
     assertThat(ranking.getScore(CONCERT_ID.toString())).isEqualTo(1.0);
   }

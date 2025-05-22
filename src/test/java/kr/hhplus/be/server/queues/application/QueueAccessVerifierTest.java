@@ -14,6 +14,7 @@ import kr.hhplus.be.server.queues.domain.QueueRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,15 +22,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class QueueAccessVerifierTest {
   @Mock
   private QueueRepository queueRepository;
-  @Mock
+  @InjectMocks
   private QueueAccessVerifier queueAccessVerifier;
 
   @Test
-  void canAccess_whenTokenExists_shouldReturnTrue() {
+  @DisplayName("token 있을때, 접근이 가능하다.")
+  void accessWithToken() {
     // given
     UUID userId = UUID.randomUUID();
-    Queue mockQueue = Queue.of(userId);
+    Queue mockQueue = mock(Queue.class);
     when(queueRepository.findByUserId(userId)).thenReturn(Optional.of(mockQueue));
+    when(mockQueue.isProcessing()).thenReturn(true);
 
     // when
     boolean result = queueAccessVerifier.canAccess(userId.toString());

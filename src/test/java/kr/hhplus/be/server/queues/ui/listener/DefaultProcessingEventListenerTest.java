@@ -10,6 +10,7 @@ import kr.hhplus.be.server.queues.domain.event.QueueProcessingEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,9 +19,8 @@ class DefaultProcessingEventListenerTest {
 
   @Mock
   private QueueStateService queueStateService;
-
+  @InjectMocks
   private DefaultProcessingEventListener listener;
-
 
   @Test
   @DisplayName("HandleProcessingEvent 호출시 service호출")

@@ -51,8 +51,8 @@ class QueueStateServiceTest {
     List<Queue> queues = List.of(queue1, queue2);
     when(repository.findAllByCreatedAtAsc()).thenReturn(queues);
 
-    when(queue1.getId()).thenReturn(UUID.randomUUID());
-    when(queue2.getId()).thenReturn(UUID.randomUUID());
+    when(queue1.getUserId()).thenReturn(UUID.randomUUID());
+    when(queue2.getUserId()).thenReturn(UUID.randomUUID());
 
     when(queue1.getQueueStatus()).thenReturn(null);
     when(queue2.getQueueStatus()).thenReturn(null);

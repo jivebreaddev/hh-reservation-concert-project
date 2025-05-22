@@ -28,9 +28,6 @@ public class QueueStateService {
 
   public void handleProcessingEvent(QueueProcessingEvent event) {
     List<Queue> queues = repository.findAllByCreatedAtAsc();
-    for (Queue queue : queues) {
-      System.out.println("hehe 조회된거얌:" + queue.toString());
-    }
 
     Set<String> ids = queues.stream()
         .map(q -> q.getUserId().toString())
