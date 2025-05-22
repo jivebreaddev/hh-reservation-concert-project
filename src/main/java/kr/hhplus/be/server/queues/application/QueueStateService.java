@@ -1,15 +1,14 @@
 package kr.hhplus.be.server.queues.application;
 
-import static kr.hhplus.be.server.queues.domain.event.QueueEvent.COMPLETE;
-import static kr.hhplus.be.server.queues.domain.event.QueueEvent.PROCESS;
-
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.queues.domain.Queue;
+import kr.hhplus.be.server.queues.domain.QueueRepository;
 import kr.hhplus.be.server.queues.domain.event.QueueCompletedEvent;
 import kr.hhplus.be.server.queues.domain.event.QueueEvent;
-import kr.hhplus.be.server.queues.domain.QueueRepository;
 import kr.hhplus.be.server.queues.domain.event.QueueProcessingEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,17 +16,23 @@ public class QueueStateService {
 
   private final QueueStateValidator queueStateValidator;
   private final QueueRepository repository;
+  private final ApplicationEventPublisher eventPublisher;
 
-  public QueueStateService(QueueStateValidator queueStateValidator, QueueRepository repository) {
+  public QueueStateService(QueueStateValidator queueStateValidator, QueueRepository repository,
+      ApplicationEventPublisher eventPublisher) {
     this.queueStateValidator = queueStateValidator;
     this.repository = repository;
+    this.eventPublisher = eventPublisher;
   }
+
 
   public void handleProcessingEvent(QueueProcessingEvent event) {
     List<Queue> queues = repository.findAllByCreatedAtAsc();
-    repository.removeFromWaitQueue(queues.stream()
+    Set<String> ids = queues.stream()
         .map(q -> q.getId().toString())
-        .collect(Collectors.toSet()));
+        .collect(Collectors.toSet());
+
+    repository.removeFromWaitQueue(ids);
 
     List<Queue> validQueues = queues.stream()
         .filter(queue -> queueStateValidator.isValidTransition(queue.getQueueStatus(), event.getQueueEvent()))
@@ -42,6 +47,10 @@ public class QueueStateService {
             .toList();
 
     repository.saveAll(validQueues);
+
+    eventPublisher.publishEvent(new QueueCompletedEvent(QueueEvent.COMPLETE, queues.stream()
+        .map(Queue::getId)
+        .toList()));
   }
 
   public void handleCompletedEvent(QueueCompletedEvent event) {

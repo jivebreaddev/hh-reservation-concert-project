@@ -44,8 +44,6 @@ public class RedisQueueRepository implements QueueRepository {
       RBatch batch = redissonClient.createBatch();
       RMapAsync<String, Queue> queueMap = batch.getMap(RedisKey.QUEUE_MAP.key());
 
-
-
       processeingQueues.forEach(q -> queueMap.putAsync(q.getUserId().toString(), q));
 
       batch.execute();
@@ -61,8 +59,13 @@ public class RedisQueueRepository implements QueueRepository {
   public Queue save(Queue waitingQueue) {
 
     try {
+      // 1. 큐 맵에 저장
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
       queueMap.put(waitingQueue.getId().toString(), waitingQueue);
+
+      // 2. 대기열(RScoredSortedSet)에 추가
+      RScoredSortedSet<String> waitQueue = redissonClient.getScoredSortedSet(RedisKey.WAIT_QUEUE.key());
+      waitQueue.add(System.currentTimeMillis(), waitingQueue.getId().toString());
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
 
