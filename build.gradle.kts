@@ -45,14 +45,14 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
 	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")
-
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-
+	implementation("org.springframework.statemachine:spring-statemachine-core:3.2.0")
 
 
 	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
+	testImplementation("org.springframework.statemachine:spring-statemachine-test:3.2.0")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
 	testImplementation("p6spy:p6spy:3.9.1")

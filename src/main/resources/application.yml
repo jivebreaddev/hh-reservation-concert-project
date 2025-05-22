@@ -20,7 +20,9 @@ spring:
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
-
+redis:
+  queue:
+    initial-size: 1000
 ---
 spring.config.activate.on-profile: local, test
 
@@ -46,3 +48,6 @@ spring:
       hibernate.jdbc.time_zone: UTC
 
 
+redis:
+  queue:
+    initial-size: 1000

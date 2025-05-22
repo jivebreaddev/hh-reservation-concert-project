@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.hhplus.be.server.queues.application.TokenInterceptor;
+import kr.hhplus.be.server.queues.config.interceptor.TokenInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;

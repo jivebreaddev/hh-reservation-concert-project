@@ -1,10 +1,7 @@
 package kr.hhplus.be.server.concerts.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,11 +12,8 @@ import kr.hhplus.be.server.concerts.application.dto.AvailableSeat;
 import kr.hhplus.be.server.concerts.application.dto.GetAvailableSeatsRequest;
 import kr.hhplus.be.server.concerts.application.dto.GetAvailableSeatsResponse;
 import kr.hhplus.be.server.fixture.concerts.ConcertFixtureSaver;
-import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
 import kr.hhplus.be.server.reservations.application.event.SeatReservedStatusEvent;
-import kr.hhplus.be.server.util.DatabaseCleanup;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,8 +22,6 @@ import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.test.context.transaction.TestTransaction;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
@@ -98,13 +90,9 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
     RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet("ranking:" + today);
 
     Double score = ranking.getScore(CONCERT_ID.toString());
-    System.out.println("Score of concertKey (" + CONCERT_ID.toString() + "): " + score);
     RKeys keys = redissonClient.getKeys();
     Iterable<String> allKeys = keys.getKeys();
 
-    for (String key : allKeys) {
-      System.out.println("Key: " + key);
-    }
 
     assertThat(ranking.getScore(CONCERT_ID.toString())).isEqualTo(1.0);
   }
