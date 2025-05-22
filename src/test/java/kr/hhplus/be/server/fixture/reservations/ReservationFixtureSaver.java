@@ -13,13 +13,13 @@ public class ReservationFixtureSaver {
     this.reservationRepository = reservationRepository;
   }
 
-  public Reservation saveTemporary(UUID userId, UUID seatId, Long expiresInMinutes) {
-    Reservation reservation = ReservationFixture.create(userId, seatId, expiresInMinutes);
+  public Reservation saveTemporary(UUID userId, UUID seatId, UUID concertId, Long expiresInMinutes) {
+    Reservation reservation = ReservationFixture.create(userId, seatId, concertId, expiresInMinutes);
     return reservationRepository.save(reservation);
   }
 
-  public Reservation saveConfirmed(UUID userId, UUID seatId) {
-    Reservation reservation = ReservationFixture.create(userId, seatId, 10L);
+  public Reservation saveConfirmed(UUID userId, UUID seatId, UUID concertId) {
+    Reservation reservation = ReservationFixture.create(userId, seatId, concertId , 10L);
     reservation.createReservation(); // CONFIRMED 상태로
     return reservationRepository.save(reservation);
   }

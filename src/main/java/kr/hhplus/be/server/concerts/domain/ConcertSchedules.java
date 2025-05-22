@@ -42,6 +42,10 @@ public class ConcertSchedules {
 
   }
 
+  public UUID getConcertId() {
+    return concertId;
+  }
+
   public Long getAvailableCount() {
     return availableCount;
   }
