@@ -1,5 +1,5 @@
 package kr.hhplus.be.server.queues.ui.listener;
 
-public interface ConcertEventListener {
+public interface ProcessingEventListener {
 
 }

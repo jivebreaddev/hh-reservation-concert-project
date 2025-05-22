@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.queues.application;
 
-import kr.hhplus.be.server.queues.event.QueueEvent;
+import kr.hhplus.be.server.queues.domain.event.QueueEvent;
 import kr.hhplus.be.server.queues.domain.QueueStatus;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.support.DefaultStateMachineContext;

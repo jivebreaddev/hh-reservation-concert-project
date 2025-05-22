@@ -2,6 +2,7 @@ package kr.hhplus.be.server.queues.domain;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface QueueRepository {
@@ -20,4 +21,9 @@ public interface QueueRepository {
   void toActiveToken(List<Token> tokenIds);
 
   List<Queue> findAllByUserId(List<UUID> userIds);
+
+  void removeFromWaitQueue(Set<String> keys);
+
+  void removeFromQueue(Set<String> keys);
+
 }

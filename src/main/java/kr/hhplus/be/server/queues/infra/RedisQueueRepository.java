@@ -44,6 +44,8 @@ public class RedisQueueRepository implements QueueRepository {
       RBatch batch = redissonClient.createBatch();
       RMapAsync<String, Queue> queueMap = batch.getMap(RedisKey.QUEUE_MAP.key());
 
+
+
       processeingQueues.forEach(q -> queueMap.putAsync(q.getUserId().toString(), q));
 
       batch.execute();
@@ -190,6 +192,29 @@ public class RedisQueueRepository implements QueueRepository {
       LOGGER.error("Redis 조회 중 오류 발생", e);
       return Collections.EMPTY_LIST;
 
+    }
+  }
+
+  @Override
+  public void removeFromWaitQueue(Set<String> keys) {
+    if (keys == null || keys.isEmpty()) {
+      return;
+    }
+    RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet(RedisKey.WAIT_QUEUE.key());
+    ranking.removeAll(keys);
+  }
+
+  @Override
+  public void removeFromQueue(Set<String> keys) {
+    if (keys == null || keys.isEmpty()) {
+      return;
+    }
+
+    try {
+      RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
+      queueMap.fastRemove(keys.toArray(new String[0]));  // 성능상 fastRemove 사용 권장
+    } catch (Exception e) {
+      LOGGER.error("QUEUE_MAP에서 키 제거 중 오류 발생", e);
     }
   }
 }
