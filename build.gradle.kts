@@ -48,6 +48,8 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 	implementation("org.springframework.statemachine:spring-statemachine-core:3.2.0")
 
+	implementation ("io.github.resilience4j:resilience4j-spring-boot3")
+	implementation ("io.github.resilience4j:resilience4j-all")
 
 	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
