@@ -4,7 +4,6 @@ package kr.hhplus.be.server.platform.ui.listener;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.payments.domain.event.PaymentFailureEvent;
 import kr.hhplus.be.server.payments.domain.event.PaymentSuccessEvent;
 import kr.hhplus.be.server.platform.infra.DefaultDataPlatformClient;
