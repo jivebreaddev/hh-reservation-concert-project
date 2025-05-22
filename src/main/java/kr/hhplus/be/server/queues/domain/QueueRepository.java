@@ -6,17 +6,18 @@ import java.util.UUID;
 
 public interface QueueRepository {
 
-  List<Queue> findByQueueStatus(QueueStatus queueStatus);
+  List<Queue> saveAll(List<Queue> processeingQueues);
 
-  void saveAll(List<Queue> processeingQueues);
+  Queue save(Queue processeingQueues);
 
-  List<Queue> findByQueueStatusOrderByCreatedAtAsc(QueueStatus queueStatus);
+  List<Queue> findAllByCreatedAtAsc();
 
-  Long countByQueueStatus(QueueStatus queueStatus);
+  Long countByQueueStatus();
 
-  Queue save(Queue of);
-
+  Optional<QueuePosition> findQueueStatusByUserId(UUID userId);
   Optional<Queue> findByUserId(UUID userId);
 
-  List<Queue> findAllByUserId(UUID userId);
+  void toActiveToken(List<Token> tokenIds);
+
+  List<Queue> findAllByUserId(List<UUID> userIds);
 }

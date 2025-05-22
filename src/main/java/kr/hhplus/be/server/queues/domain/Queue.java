@@ -1,34 +1,20 @@
 package kr.hhplus.be.server.queues.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-@Entity
-@Table(name = "queues")
+
 public class Queue {
 
-  @Column(name = "id", columnDefinition = "binary(16)")
-  @Id
   private UUID id;
 
-  @Column(name = "user_id", columnDefinition = "binary(16)")
   private UUID userId;
 
-  @Column(name = "status", nullable = false, columnDefinition = "varchar(255)")
-  @Enumerated(EnumType.STRING)
   private QueueStatus queueStatus;
 
-  @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
-  @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
   protected Queue(UUID userId) {
@@ -40,7 +26,6 @@ public class Queue {
   }
 
   protected Queue() {
-
   }
 
   public static Queue of(UUID userId) {
@@ -53,6 +38,10 @@ public class Queue {
 
   public UUID getId() {
     return id;
+  }
+
+  public UUID getUserId() {
+    return userId;
   }
 
   @Override

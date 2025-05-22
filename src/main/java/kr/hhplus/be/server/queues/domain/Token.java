@@ -6,11 +6,8 @@ import java.util.UUID;
 
 public class Token {
   private UUID id;
-
   private UUID userId;
-
   private UUID queueId;
-
 
   protected Token(UUID userId, UUID queueId) {
     this.id = UUID.randomUUID();
