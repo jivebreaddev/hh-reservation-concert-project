@@ -32,9 +32,34 @@ public class Queue {
     return new Queue(userId);
   }
 
+  public Queue toProcessing() {
+    this.queueStatus = QueueStatus.PROCESSING;
+    this.updatedAt = LocalDateTime.now();
+    return this;
+  }
+
+  public Queue toCompleted() {
+    this.queueStatus = QueueStatus.COMPLETED;
+    this.updatedAt = LocalDateTime.now();
+    return this;
+  }
+
+  public boolean isProcessing() {
+    return this.queueStatus == QueueStatus.PROCESSING;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
   public QueueStatus getQueueStatus() {
     return queueStatus;
   }
+
 
   public UUID getId() {
     return id;
@@ -61,21 +86,14 @@ public class Queue {
     return Objects.hash(id);
   }
 
-  public Queue toProcessing() {
-    this.queueStatus = QueueStatus.PROCESSING;
-    return this;
-  }
-
-  public Queue toCompleted() {
-    this.queueStatus = QueueStatus.COMPLETED;
-    return this;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
+  @Override
+  public String toString() {
+    return "Queue{" +
+        "id=" + id +
+        ", userId=" + userId +
+        ", queueStatus=" + queueStatus +
+        ", createdAt=" + createdAt +
+        ", updatedAt=" + updatedAt +
+        '}';
   }
 }

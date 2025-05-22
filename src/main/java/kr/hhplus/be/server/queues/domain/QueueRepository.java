@@ -16,9 +16,10 @@ public interface QueueRepository {
   Long countByQueueStatus();
 
   Optional<QueuePosition> findQueueStatusByUserId(UUID userId);
+
   Optional<Queue> findByUserId(UUID userId);
 
-  void toActiveToken(List<Token> tokenIds);
+  void toActiveToken(List<Queue> userIds);
 
   List<Queue> findAllByUserId(List<UUID> userIds);
 

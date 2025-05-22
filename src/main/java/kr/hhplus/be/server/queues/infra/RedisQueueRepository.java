@@ -12,13 +12,13 @@ import java.util.stream.Collectors;
 import kr.hhplus.be.server.queues.domain.Queue;
 import kr.hhplus.be.server.queues.domain.QueuePosition;
 import kr.hhplus.be.server.queues.domain.QueueRepository;
-import kr.hhplus.be.server.queues.domain.Token;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RBatch;
 import org.redisson.api.RMap;
 import org.redisson.api.RMapAsync;
 import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RSet;
+import org.redisson.api.RSetCache;
 import org.redisson.api.RSetCacheAsync;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.protocol.ScoredEntry;
@@ -61,11 +61,16 @@ public class RedisQueueRepository implements QueueRepository {
     try {
       // 1. 큐 맵에 저장
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
-      queueMap.put(waitingQueue.getId().toString(), waitingQueue);
+      queueMap.put(waitingQueue.getUserId().toString(), waitingQueue);
+      LOGGER.error("Redis 조회 {}", waitingQueue.getUserId().toString());
 
       // 2. 대기열(RScoredSortedSet)에 추가
-      RScoredSortedSet<String> waitQueue = redissonClient.getScoredSortedSet(RedisKey.WAIT_QUEUE.key());
-      waitQueue.add(System.currentTimeMillis(), waitingQueue.getId().toString());
+      RScoredSortedSet<String> waitQueue = redissonClient.getScoredSortedSet(
+          RedisKey.WAIT_QUEUE.key());
+      waitQueue.add(System.currentTimeMillis(), waitingQueue.getUserId().toString());
+
+      LOGGER.error("Redis 조회 {}", waitingQueue.getUserId().toString());
+
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
 
@@ -109,7 +114,7 @@ public class RedisQueueRepository implements QueueRepository {
   public Long countByQueueStatus() {
     // SCARD O(1)
     try {
-      RSet<String> activeTokens = redissonClient.getSet(RedisKey.PROCESS_QUEUE.key());
+      RSetCache<String> activeTokens = redissonClient.getSetCache(RedisKey.PROCESS_QUEUE.key());
       return activeTokens.stream().count();
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
@@ -119,14 +124,14 @@ public class RedisQueueRepository implements QueueRepository {
   }
 
   @Override
-  public void toActiveToken(List<Token> waitingToken) {
+  public void toActiveToken(List<Queue> waitingUsers) {
     try {
       RBatch batch = redissonClient.createBatch();
       RSetCacheAsync<String> activeTokens = batch.getSetCache(RedisKey.PROCESS_QUEUE.key());
 
-      waitingToken
+      waitingUsers
           .forEach(
-              token -> activeTokens.addAsync(String.valueOf(token.getId()), 300, TimeUnit.SECONDS)
+              user -> activeTokens.addAsync(String.valueOf(user.getUserId()), 300, TimeUnit.SECONDS)
           );
       batch.execute();
     } catch (Exception e) {
@@ -156,6 +161,7 @@ public class RedisQueueRepository implements QueueRepository {
   public Optional<Queue> findByUserId(UUID userId) {
     try {
       String id = userId.toString();
+      LOGGER.error("Redis 조회 {}", id);
 
       RSet<String> processing = redissonClient.getSet(RedisKey.PROCESS_QUEUE.key());
       if (processing.contains(id)) {
@@ -204,6 +210,11 @@ public class RedisQueueRepository implements QueueRepository {
       return;
     }
     RScoredSortedSet<String> ranking = redissonClient.getScoredSortedSet(RedisKey.WAIT_QUEUE.key());
+    System.out.println(keys.toString());
+    for (String key : keys) {
+      System.out.println(key);
+    }
+
     ranking.removeAll(keys);
   }
 

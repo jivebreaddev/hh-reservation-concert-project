@@ -8,10 +8,7 @@ public interface TokenRepository {
 
   Token save(Token token);
 
-  Optional<Token> findById(UUID tokenId);
-
   Optional<Token> findByUserId(UUID userId);
 
   List<Token> findByUserIds(List<UUID> userIds);
-
 }

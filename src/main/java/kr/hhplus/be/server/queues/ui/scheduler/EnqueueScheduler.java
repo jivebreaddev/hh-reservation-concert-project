@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.queues.ui.scheduler;
 
 import kr.hhplus.be.server.common.annotation.Scheduler;
-import kr.hhplus.be.server.queues.application.QueueAdmissionUseCase;
 import kr.hhplus.be.server.queues.domain.event.QueueEvent;
 import kr.hhplus.be.server.queues.domain.event.QueueProcessingEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -9,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 @Scheduler
 public class EnqueueScheduler {
+
   private final ApplicationEventPublisher applicationEventPublisher;
 
   public EnqueueScheduler(ApplicationEventPublisher applicationEventPublisher) {

@@ -28,14 +28,18 @@ public class QueueStateService {
 
   public void handleProcessingEvent(QueueProcessingEvent event) {
     List<Queue> queues = repository.findAllByCreatedAtAsc();
-    Set<String> ids = queues.stream()
-        .map(q -> q.getId().toString())
-        .collect(Collectors.toSet());
+    for (Queue queue : queues) {
+      System.out.println("hehe 조회된거얌:" + queue.toString());
+    }
 
+    Set<String> ids = queues.stream()
+        .map(q -> q.getUserId().toString())
+        .collect(Collectors.toSet());
     repository.removeFromWaitQueue(ids);
 
     List<Queue> validQueues = queues.stream()
-        .filter(queue -> queueStateValidator.isValidTransition(queue.getQueueStatus(), event.getQueueEvent()))
+        .filter(queue -> queueStateValidator.isValidTransition(queue.getQueueStatus(),
+            event.getQueueEvent()))
         .map(queue -> {
           switch (event.getQueueEvent()) {
             case PROCESS -> queue.toProcessing();
@@ -44,9 +48,10 @@ public class QueueStateService {
 
           return queue;
         })
-            .toList();
+        .toList();
 
     repository.saveAll(validQueues);
+    repository.toActiveToken(validQueues);
 
     eventPublisher.publishEvent(new QueueCompletedEvent(QueueEvent.COMPLETE, queues.stream()
         .map(Queue::getId)
@@ -57,7 +62,8 @@ public class QueueStateService {
     List<Queue> queues = repository.findAllByUserId(event.getExpiringUserIds());
 
     List<Queue> validQueues = queues.stream()
-        .filter(queue -> queueStateValidator.isValidTransition(queue.getQueueStatus(), event.getQueueEvent()))
+        .filter(queue -> queueStateValidator.isValidTransition(queue.getQueueStatus(),
+            event.getQueueEvent()))
         .map(queue -> {
           switch (event.getQueueEvent()) {
             case COMPLETE -> queue.toCompleted();
