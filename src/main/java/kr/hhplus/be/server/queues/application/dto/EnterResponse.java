@@ -9,10 +9,12 @@ public class EnterResponse {
 
   private final UUID userId;
   private final QueueStatus queueStatus;
+  private final Long queuePosition;
 
-  public EnterResponse(UUID userId, QueueStatus queueStatus) {
+  public EnterResponse(UUID userId, QueueStatus queueStatus, Long queuePosition) {
     this.userId = userId;
     this.queueStatus = queueStatus;
+    this.queuePosition = queuePosition;
   }
 
   public UUID getUserId() {

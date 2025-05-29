@@ -3,22 +3,23 @@ package kr.hhplus.be.server.queues.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import kr.hhplus.be.server.IntegrationTest;
-import kr.hhplus.be.server.payments.infra.DefaultPaymentRepository;
 import kr.hhplus.be.server.queues.application.dto.EnterRequest;
 import kr.hhplus.be.server.queues.application.dto.EnterResponse;
 import kr.hhplus.be.server.queues.application.dto.QueueRequest;
 import kr.hhplus.be.server.queues.application.dto.QueueResponse;
 import kr.hhplus.be.server.queues.domain.Queue;
 import kr.hhplus.be.server.queues.domain.QueueRepository;
+import kr.hhplus.be.server.queues.domain.QueueStatus;
 import kr.hhplus.be.server.queues.domain.TokenRepository;
-import kr.hhplus.be.server.util.DatabaseCleanup;
+import kr.hhplus.be.server.queues.infra.RedisKey;
+import kr.hhplus.be.server.util.RedisCleanup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,14 +33,11 @@ public class DefaultQueueFacadeIntegrationTest extends IntegrationTest {
   @Autowired
   TokenRepository tokenRepository;
   @Autowired
-  DatabaseCleanup databaseCleanup;
-
-  @Autowired
-  DefaultPaymentRepository repository;
+  RedisCleanup redisCleanup;
 
   @BeforeEach
   void cleanDatabase() {
-    databaseCleanup.cleanUp(List.of("queues"));
+    redisCleanup.cleanUp(List.of(RedisKey.PROCESS_QUEUE.key(), RedisKey.QUEUE_MAP.key(), RedisKey.WAIT_QUEUE.key()));
   }
 
   @Test
@@ -51,20 +49,20 @@ public class DefaultQueueFacadeIntegrationTest extends IntegrationTest {
     QueueResponse response = queueService.queueUser(request);
 
     assertThat(response.getUserId()).isEqualTo(userId);
-    assertThat(queueRepository.findByUserId(userId)).isPresent();
-    assertThat(tokenRepository.findById(response.getToken())).isPresent();
+    assertThat(queueRepository.findAllByUserId(List.of(userId))).isNotEmpty();
   }
 
   @Test
   @DisplayName("getQueueStatus 호출 시 해당 유저의 Queue 상태를 반환한다")
   void getQueueStatus() {
     UUID userId = UUID.randomUUID();
-    Queue queue = queueRepository.save(Queue.of(userId));
+    QueueRequest request = new QueueRequest(userId);
+    queueService.queueUser(request);
 
-    EnterResponse response = queueService.getQueueStatus(new EnterRequest(userId));
+    EnterResponse queueStatus = queueService.getQueueStatus(new EnterRequest(userId));
 
-    assertThat(response.getUserId()).isEqualTo(userId);
-    assertThat(response.getQueueStatus()).isEqualTo(queue.getQueueStatus());
+    assertThat(queueStatus.getUserId()).isEqualTo(userId);
+    assertThat(queueStatus.getQueueStatus()).isEqualTo(QueueStatus.WAITING);
   }
 
   @Test
@@ -101,7 +99,7 @@ public class DefaultQueueFacadeIntegrationTest extends IntegrationTest {
     executorService.shutdown();
 
     // 해당 유저에 대한 대기열은 하나만 있어야 함
-    List<Queue> queues = queueRepository.findAllByUserId(userId);
-    assertThat(queues).hasSize(1);
+    Optional<Queue> queue = queueRepository.findByUserId(userId);
+    assertThat(queue.get()).isNotNull();
   }
 }

@@ -2,6 +2,7 @@ package kr.hhplus.be.server.queues.application;
 
 import java.util.UUID;
 import kr.hhplus.be.server.queues.domain.Queue;
+import kr.hhplus.be.server.queues.domain.QueuePosition;
 import kr.hhplus.be.server.queues.domain.QueueRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +22,8 @@ public class DefaultQueueFactoryService implements QueueFactoryUseCase {
   }
 
   @Override
-  public Queue getQueue(UUID userId) {
-    return queueRepository.findByUserId(userId)
+  public QueuePosition getQueueStatus(UUID userId) {
+    return queueRepository.findQueueStatusByUserId(userId)
         .orElseThrow(RuntimeException::new);
   }
 }
