@@ -23,6 +23,12 @@ spring:
       hibernate.show_sql: true
       hibernate.jdbc.time_zone: UTC
 
+  spring:
+    kafka:
+      bootstrap-servers: localhost:9092
+      listener:
+        concurrency: 2
+
 
 logging:
   level:

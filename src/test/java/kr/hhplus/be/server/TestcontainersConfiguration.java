@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -89,5 +91,15 @@ public class TestcontainersConfiguration {
 
     factory.setJpaProperties(jpaProperties);
     return factory;
+  }
+
+  public static String getKafkaBootstrapServers() {
+    return COMPOSE_CONTAINER.getServiceHost("kafka", 9092) + ":" + COMPOSE_CONTAINER.getServicePort("kafka", 9092);
+  }
+
+  public AdminClient getAdminClient() {
+    Properties props = new Properties();
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getKafkaBootstrapServers());
+    return AdminClient.create(props);
   }
 }
