@@ -8,17 +8,15 @@ import kr.hhplus.be.server.payments.domain.event.PaymentFailureEvent;
 import kr.hhplus.be.server.payments.domain.event.PaymentSuccessEvent;
 import kr.hhplus.be.server.platform.infra.DefaultDataPlatformClient;
 import kr.hhplus.be.server.queues.domain.event.QueueCompletedEvent;
-import kr.hhplus.be.server.reservations.domain.event.SeatAvailableStatusEvent;
-import kr.hhplus.be.server.reservations.domain.event.SeatHeldStatusEvent;
-import kr.hhplus.be.server.reservations.domain.event.SeatPendingStatusEvent;
-import kr.hhplus.be.server.reservations.domain.event.SeatReservedStatusEvent;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-@EnableAsync
+@Deprecated
+@Component
 public class DefaultDataPlatformApiListener {
+
   private final DefaultDataPlatformClient client;
 
   public DefaultDataPlatformApiListener(DefaultDataPlatformClient client) {
@@ -43,53 +41,6 @@ public class DefaultDataPlatformApiListener {
     client.send(event);
   }
 
-
-  @Async
-  @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)
-  @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleSeatHeld(SeatHeldStatusEvent event) {
-    client.send(event);
-
-  }
-
-
-  @Async
-  @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)
-  @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleCompleted(SeatPendingStatusEvent event) {
-    client.send(event);
-  }
-
-  @Async
-  @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)
-  @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleCompleted(SeatAvailableStatusEvent event) {
-    client.send(event);
-  }
-
-  @Async
-  @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)
-  @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleSeatPending(SeatPendingStatusEvent event) {
-    client.send(event);
-  }
-
-  @Async
-  @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)
-  @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleReservedStatus(SeatReservedStatusEvent event) {
-    client.send(event);
-  }
 
   @Async
   @Bulkhead(name = "handleQueueEventBulkhead", type = Bulkhead.Type.THREADPOOL)

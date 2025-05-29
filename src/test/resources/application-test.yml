@@ -22,7 +22,24 @@ spring:
       hibernate.format_sql: true
       hibernate.show_sql: true
       hibernate.jdbc.time_zone: UTC
+    kafka:
+      bootstrap-servers: kafka:9094
+      producer:
+        client-id: producer-id
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        retries: 5
 
+      consumer:
+        group-id: consumer-group-id
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+        properties:
+          enable-auto-commit: false
+
+      listener:
+        ack-mode: manual
+        concurrency: 3
 
 logging:
   level:

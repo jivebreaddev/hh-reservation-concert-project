@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.platform.infra;
 
+import kr.hhplus.be.server.platform.domain.DataPlatformClient;
 import org.springframework.stereotype.Component;
 
 @Component

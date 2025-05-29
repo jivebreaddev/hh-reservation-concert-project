@@ -9,6 +9,7 @@ import kr.hhplus.be.server.reservations.application.dto.ReservationResponse;
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationRequest;
 import kr.hhplus.be.server.reservations.application.dto.TemporaryReservationResponse;
 import kr.hhplus.be.server.reservations.domain.event.SeatAvailableStatusEvent;
+import kr.hhplus.be.server.reservations.domain.event.SeatEventPublisher;
 import kr.hhplus.be.server.reservations.domain.event.SeatHeldStatusEvent;
 import kr.hhplus.be.server.reservations.domain.event.SeatReservedStatusEvent;
 import kr.hhplus.be.server.reservations.domain.Reservation;
@@ -26,14 +27,15 @@ public class DefaultReservationService {
   private static final Long PENDING = 5L;
   private final ReservationRepository reservationRepository;
   private final SeatClient seatClient;
-  private final ApplicationEventPublisher eventPublisher;
+  private final SeatEventPublisher eventPublisher;
 
-  protected DefaultReservationService(ReservationRepository reservationRepository,
-      SeatClient seatClient, ApplicationEventPublisher eventPublisher) {
+  public DefaultReservationService(ReservationRepository reservationRepository,
+      SeatClient seatClient, SeatEventPublisher eventPublisher) {
     this.reservationRepository = reservationRepository;
     this.seatClient = seatClient;
     this.eventPublisher = eventPublisher;
   }
+
 
   @Transactional(readOnly = true)
   public GetReservationResponse getReservations(
@@ -50,7 +52,7 @@ public class DefaultReservationService {
       TemporaryReservationRequest request
   ) {
     if (seatClient.seatAvailable(request.getSeatId())) {
-      eventPublisher.publishEvent(SeatHeldStatusEvent.of(request.getSeatId()));
+      eventPublisher.publishSeatHeldEvent(SeatHeldStatusEvent.of(request.getConcertId(), request.getSeatId()));
 
       Reservation reservation = reservationRepository.save(
           Reservation.createTemporaryReservation(UUID.randomUUID(),
@@ -76,7 +78,7 @@ public class DefaultReservationService {
 
     reservationRepository.save(reservation);
 
-    eventPublisher.publishEvent(SeatReservedStatusEvent.of(reservation.getSeatId(), reservation.getConcertId()));
+    eventPublisher.publishSeatReservedEvent(SeatReservedStatusEvent.of(reservation.getSeatId(), reservation.getConcertId()));
 
     return new ReservationResponse(reservation.getId(), reservation.getUserId(),
         reservation.getSeatId(), reservation.getReservationStatus());
@@ -96,7 +98,7 @@ public class DefaultReservationService {
     );
 
     reservations.forEach(
-        reservation -> eventPublisher.publishEvent(SeatAvailableStatusEvent.of(reservation.getSeatId()))
+        reservation -> eventPublisher.publishSeatAvailableEvent(SeatAvailableStatusEvent.of(reservation.getConcertId(), reservation.getSeatId()))
     );
 
   }

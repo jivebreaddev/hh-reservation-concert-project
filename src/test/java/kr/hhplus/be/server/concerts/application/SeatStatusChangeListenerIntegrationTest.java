@@ -63,7 +63,7 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
         .findFirst().get();
 
     // When
-    seatStatusChangeListener.handleHeld(SeatHeldStatusEvent.of(seat));
+    seatStatusChangeListener.handleHeld(SeatHeldStatusEvent.of(CONCERT_ID, seat));
 
     List<AvailableSeat> seats = seatQueryUseCase
         .getAvailableSeatsResponseList(new GetAvailableSeatsRequest(CONCERT_ID))
@@ -83,7 +83,7 @@ public class SeatStatusChangeListenerIntegrationTest extends IntegrationTest {
     String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
     // When
-    seatStatusChangeListener.handleHeld(SeatHeldStatusEvent.of(seat));
+    seatStatusChangeListener.handleHeld(SeatHeldStatusEvent.of(CONCERT_ID, seat));
     seatStatusChangeListener.handleReserved(SeatReservedStatusEvent.of(seat, CONCERT_ID));
 
     // Then

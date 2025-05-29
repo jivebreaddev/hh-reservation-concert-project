@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -58,6 +60,10 @@ public class TestcontainersConfiguration {
     System.setProperty("spring.redis.sentinel.master", "mymaster");
     System.setProperty("spring.redis.sentinel.nodes", redisHost + ":" + redisPort);
     System.setProperty("spring.redis.password", "mypass");
+
+    String kafkaHost = COMPOSE_CONTAINER.getServiceHost("kafka", 9094);
+    Integer kafkaPort = COMPOSE_CONTAINER.getServicePort("kafka", 9094);
+    registry.add("spring.kafka.bootstrap-servers", () -> kafkaHost + ":" + kafkaPort);
   }
   @PreDestroy
   public void stop() {
@@ -89,5 +95,15 @@ public class TestcontainersConfiguration {
 
     factory.setJpaProperties(jpaProperties);
     return factory;
+  }
+
+  public static String getKafkaBootstrapServers() {
+    return COMPOSE_CONTAINER.getServiceHost("kafka", 9094) + ":" + COMPOSE_CONTAINER.getServicePort("kafka", 9094);
+  }
+
+  public AdminClient getAdminClient() {
+    Properties props = new Properties();
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getKafkaBootstrapServers());
+    return AdminClient.create(props);
   }
 }
