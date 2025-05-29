@@ -65,7 +65,25 @@ spring:
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      client-id: producer-id
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 5
 
+    consumer:
+      group-id: consumer-group-id
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        enable-auto-commit: false
+        spring.json.trusted.packages: "*"
+
+    listener:
+      ack-mode: manual
+      concurrency: 1
 
 redis:
   queue:
@@ -89,3 +107,4 @@ resilience4j:
       handleQueueEventRetry:
         maxAttempts: 3
         waitDuration: 200ms
+

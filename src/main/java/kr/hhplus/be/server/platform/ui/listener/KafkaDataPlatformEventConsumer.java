@@ -27,7 +27,6 @@ public class KafkaDataPlatformEventConsumer implements DataPlatformEventListener
 
 
   @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
   @KafkaListener(topics = TopicContants.SEAT_STATUS, groupId = "data-platform")
   public void handleSeatHeld(SeatHeldStatusEvent event, Acknowledgment ack) {
     try {
@@ -44,7 +43,6 @@ public class KafkaDataPlatformEventConsumer implements DataPlatformEventListener
 
 
   @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
   @KafkaListener(topics = TopicContants.SEAT_STATUS, groupId = "data-platform")
   public void handleCompleted(SeatPendingStatusEvent event, Acknowledgment ack) {
     try {
@@ -59,7 +57,6 @@ public class KafkaDataPlatformEventConsumer implements DataPlatformEventListener
   }
 
   @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
   @KafkaListener(topics = TopicContants.SEAT_STATUS, groupId = "data-platform")
   public void handleSeatPending(SeatPendingStatusEvent event, Acknowledgment ack) {
     try {
@@ -76,7 +73,6 @@ public class KafkaDataPlatformEventConsumer implements DataPlatformEventListener
 
   @Override
   @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
   @KafkaListener(topics = TopicContants.SEAT_STATUS, groupId = "data-platform")
   public void handleSeatAvailable(SeatAvailableStatusEvent event, Acknowledgment ack) {
     try {
@@ -93,7 +89,6 @@ public class KafkaDataPlatformEventConsumer implements DataPlatformEventListener
 
   @Override
   @CircuitBreaker(name = "handleQueueEventCB")
-  @Retry(name = "handleQueueEventRetry")
   @KafkaListener(topics = TopicContants.SEAT_STATUS, groupId = "data-platform")
   public void handleReservedStatus(SeatReservedStatusEvent event, Acknowledgment ack) {
     try {

@@ -60,6 +60,10 @@ public class TestcontainersConfiguration {
     System.setProperty("spring.redis.sentinel.master", "mymaster");
     System.setProperty("spring.redis.sentinel.nodes", redisHost + ":" + redisPort);
     System.setProperty("spring.redis.password", "mypass");
+
+    String kafkaHost = COMPOSE_CONTAINER.getServiceHost("kafka", 9094);
+    Integer kafkaPort = COMPOSE_CONTAINER.getServicePort("kafka", 9094);
+    registry.add("spring.kafka.bootstrap-servers", () -> kafkaHost + ":" + kafkaPort);
   }
   @PreDestroy
   public void stop() {
@@ -94,7 +98,7 @@ public class TestcontainersConfiguration {
   }
 
   public static String getKafkaBootstrapServers() {
-    return COMPOSE_CONTAINER.getServiceHost("kafka", 9092) + ":" + COMPOSE_CONTAINER.getServicePort("kafka", 9092);
+    return COMPOSE_CONTAINER.getServiceHost("kafka", 9094) + ":" + COMPOSE_CONTAINER.getServicePort("kafka", 9094);
   }
 
   public AdminClient getAdminClient() {

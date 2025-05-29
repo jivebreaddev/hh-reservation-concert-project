@@ -22,10 +22,8 @@ spring:
       hibernate.format_sql: true
       hibernate.show_sql: true
       hibernate.jdbc.time_zone: UTC
-
-  spring:
     kafka:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9094
       producer:
         client-id: producer-id
         key-serializer: org.apache.kafka.common.serialization.StringSerializer
