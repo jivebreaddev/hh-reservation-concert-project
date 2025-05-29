@@ -1,9 +1,8 @@
 package kr.hhplus.be.server.concerts.application;
 
-import kr.hhplus.be.server.reservations.application.event.SeatAvailableStatusEvent;
-import kr.hhplus.be.server.reservations.application.event.SeatHeldStatusEvent;
-import kr.hhplus.be.server.reservations.application.event.SeatReservedStatusEvent;
-import org.redisson.api.RedissonClient;
+import kr.hhplus.be.server.reservations.domain.event.SeatAvailableStatusEvent;
+import kr.hhplus.be.server.reservations.domain.event.SeatHeldStatusEvent;
+import kr.hhplus.be.server.reservations.domain.event.SeatReservedStatusEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

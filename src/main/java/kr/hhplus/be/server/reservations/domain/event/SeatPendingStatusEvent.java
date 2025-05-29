@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.reservations.application.event;
+package kr.hhplus.be.server.reservations.domain.event;
 
 import java.util.UUID;
 
