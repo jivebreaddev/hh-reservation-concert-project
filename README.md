@@ -1005,3 +1005,160 @@ public void configure(StateMachineTransitionConfigurer<QueueState, QueueEvent> t
     - 동적인 트래픽 관리 가능하고 M을 장애 상황에 제한 시켜서 서비스 상태를 복구 할 수 있다.
 
 </details>
+<details>
+  <summary>16. Kafka</summary>
+
+## Kafka 핵심 정리
+### 1. Kafka 개요 및 도입 이유
+- Kafka 란?
+    - 분산 메시지 큐 시스템
+    - 디스크 기반으로 초당 수십만건 처리가능
+    - 여러개의 브로커가 메시지를 나눠 처리함
+
+- Kafka 는 왜 빠를까?
+    -  운영체제와 네트워크를 최적화한 성능 설계
+    - 저지연 I/O로 페이지 캐시(RAM)을 활용하여 디스크가 아닌 캐시된 블록으로 처리
+    - 순차적 I/O 자료구조로 append-only log 를 활용함
+    - Zero-Copy 기술 적용
+      - 기존: 디스크 -> 커널 -> 사용자(java heap) -> 커널 네트워크 버퍼 -> 네트워크 소켓
+      - 디스크 -> 네트워크로 직접 전송 (커널 내부에서 복사)
+      - 복사 비용과 컨텍스트 스위칭이 줄어듬
+      - NIO의 transferTo 함수로 네트워크 처리량과 CPU 사용률을 절감
+    - Kafka는 토픽을 여러 파티션으로 나누고, 여러 브로커에 분산 저장하여 병렬로 처리가능
+    - 일괄처리(배치), 압축하여 전송하여, 네트워크 트래픽 감소, 디스크 사용량 감소, 처리량 증가
+
+- 왜 Kafka 를 써야할까?
+    - 제품에서 제공해야할 내결합성, 확장성, 높은 처리량 들을 쉽게 제공해주기 때문이다.
+    - 또, 메시지를 디스크에 저장해서, 장애도 대비하며, 재처리도 가능해서 Consumer가 직접 다시 읽을 수 있다.
+
+
+
+### 2. 핵심 구성요소
+![img.png](img.png)
+#### Topic
+
+- 메시지를 논리적으로 구분하는 단위
+- producer는 특정 Topic 에 메시지를 전송하고, Consumer는 해당 Topic을 구독
+
+#### Partition
+
+- Topic은 하나 이상의 Partition으로 구성됨
+- 각 Partition은 독립적인 로그 구조를 가지며, 메시지는 순차적으로 저장됨
+- 병렬 처리의 단위
+- 하나의 Partition에는 Consumer Group 내에서 단 하나의 Consumer만 처리함
+  (메시지의 순서를 보장받고 싶다면 같은 파티션에 들어가도록 Key를 지정해야 함)
+
+#### Broker
+
+- Kafka 클러스터를 구성하는 서버 하나를 Broker라고 부른다.
+- Broker는 다음 역할을 수행:
+  - Topic 과 Partition 저장
+  - Producer로부터 메시지를 받아 저장
+  - Consumer 요청에 따라 메시지 저장
+- 여러 Broker가 있을 경우:
+  - Parition은 분산 저장됨
+  - Partition당 리더 팔로워 구조
+
+- Producer의 메시지를 받아서 Offset 지정후 디스크에 저장
+- Consumer의 파티션 read에 응답해 디스크의 메시지 전송
+- 
+
+#### Consumer Group
+
+- 여러 Consumer를 하나의 논리적 그룹으로 묶음
+- 하나의 Partition은 Consumer Group 내에서 단 하나의 Consumer만 처리
+- Consumer GRoup ID 기준으로 offset을 개별 관리
+
+- 같은 Topic을 구독하더라도, 다른 Group ID를 가진 Consumer는 메시지를 독립적으로 처리
+- 다수의 Consumer를 그룹으로 묶어 병렬 처리 및 수평 확장
+
+#### Message의 형태
+```
+Key   | Value   | Headers | Timestamp | Offset | Partition
+```
+
+- Key: 메시지를 특정 파티션으로 보내는 기준
+- Value: 실제 전달하려는 데이터
+- Headers: 부가 메타데이터
+- Timestamp: 생성 시간 또는 브로커 수신 시간
+- Offset: 파티션 내에서 메시지의 고유 ID
+- Partition: 메시지가 저장된 파티션 번호 
+
+#### Consumer의 입장에서 Offset
+- 기본 동작
+  - Kafka의 메시지는 각 Partition에 순차적으로 적재되고 메시지는 고유한 Offset을 가진다.
+  - Offset은 해당 Partition 내에 메시지 위치를 나타내는 번호입니다. 
+- Consumer와 Offset
+  - Kafka의 Consumer는 각 Partition에서 메시지를 읽을 때마다, Offset을 추적한다.
+  - offset을 기반으로 다음 메시지를 결정한다.
+- Current Offset
+  - Consumer가 가장 마지막에 처리한 메시지의 Offset
+  - Kafka에서 이 값을 commit 해야 재시작
+  - 중복 방지: 커밋된 Offset 보다 이전 메시지를 다시 읽지 않음
+  - 유실 방지: 커밋되지 않은 Offset은 다시 처리 대상으로 남음
+- Lag 이란?
+  - Lag = 최신 offset - 커밋된 offset
+  - 메시지가 쌓이고 있음을 의미
+  - Lag가 클 때, 체크리스트
+    - max.poll.interval.ms가 너무 작아서 리밸런싱 자주 발생
+    - Consumer의 병목
+    - Partition 수 > Consumer 수? → 병렬 처리 부족
+    - 컨슈머 예외 처리 실패 → DLQ 미사용으로 무한 재시도
+    - Retry 설정 부재한지?
+
+
+
+### 3. 메시지 큐 개념 정리
+- 메시지 큐를 이용하는 이유는
+  - 서비스 간 결합도 줄이기 (비동기화)
+  - 비동기 처리로 성능 향상
+  - 확장성과 복원력
+
+### 4. 장애 처리 및 DLQ 전략
+
+1. Kafka가 메시지를 중복 처리하지 않게 하는 방법
+    - Kafka를 사용하면서, at-least-once를 보장하기 때문에 Consumer가 메시지를 한번 이상 받을 수 있습니다.
+     - 메시지 키 기반 중복 검사: redis에서 메시지에 대한 hash 값을 저장함으로써, 2번 처리하지 않도록 처리할 수 있다.
+     - Kafka가 제공하는 트랜잭션 기반 처리 방식 (Kafka Streams)
+     - DB 제약 조건 사용
+     - Outbox 패턴 사용
+   - 중복처리에 대한 처리가 되어있을 때, 장애 발생시, 동적인 offset 처리로 이벤트 재처리 가능하다.
+2. Kafka가 메시지를 유실 처리하지 않게 하는 방법
+- Kafka에서 메시지를 유실할 수 있는 경우는 3가지가 존재한다.
+  - Producer -> Broker
+    - 이 경우, Broker에 대해 패킷 드랍, 일시적 오류로 메시지 유실이 발생 할 수 있음으로,
+    - 메시지를 전송한 후 얼마나 많은 브로커(복제본)로부터 확인(ACK)을 받아야 성공으로 간주
+      - acks 설정값으로, min.insync.replicas=2, acks=all 처리해서, 2개의 ISR에 대한 최소 복제본 수를 강제 할 수 있음
+      - 다만, 클러스터 운영시에, ISR가 한대만 남는다면, Producer는 ack 할 수 없어 모든 메시지 실패처리됨
+    - 유실에 대한 정책이 어떤지에 따라 적절한 옵션을 골라야하고, ack이 all 일때, 성능도 떨어지나 Exactly-once 처리는 가능하다.
+  - Broker 메모리 (Kafka는 디스크 기반 저장을 하긴 하지만, 메모리에서 메시지가 유실될 가능성도 존재)
+    - Retention 정책 조절
+      - log.retention.ms, log.retention.bytes
+      - 너무 짧으면 메시지를 읽기도 전에 삭제됨
+    - 메시지를 전송했지만, 리더 브로커의 디스크에 flush 되기 전에 장애 발생
+      - flush.messages 또는 flush.ms 설정에 따라 쓰기 지연
+      - flush 전에 죽으면 해당 메시지는 디스크에 없기 때문에 복구 불가
+    - Replication factor = 1 로 설정
+      - 리더 죽으면 메시지 복구 안됨
+    - 트랜잭션 도중 장애 → 메시지가 half commit시
+  
+  - Broker -> Consumer 
+    - manual commit 방식 사용
+      - 정상 처리 이후에 commit 처리 함으로써, 오류에 적절히 처리
+    - Consumer 처리 시간 고려하여 설정 조정
+      - max.poll.interval.ms, session.timeout.ms, heartbeat.interval.ms 값 조절
+      - max.poll.interval.ms가 작으면 리밸런싱 발생
+    - 처리 실패시 DLQ 활용
+
+  - Rebalancing이 일어나는 상황
+    - Consumer가 새로 참여
+    - Consumer가 중단/죽음
+    - max.poll.interval.ms 초과
+    -> 잠시 동안 메시지를 소비하지 못함, 처리 중인 메시지 중복 처리 가능성
+
+  - 이벤트를 퍼블리시 할때 주의할 점
+    - 메시지 형식이 바뀌면 Consumer가 깨질 수 있음
+    - 파티션 전략과 순서 보장을 위해 Key 설정 필수
+    - Kafka는 자동 재시도 X → 실패 시 DLQ 구성 필수
+
+</details>
