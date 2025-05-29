@@ -33,7 +33,6 @@ import org.springframework.test.context.transaction.TestTransaction;
 class DefaultDataPlatformApiListenerIntegrationTest extends IntegrationTest {
   @MockBean
   private SeatStatusChangeListener statusChangeListener;
-
   @Autowired
   private FakePlatformApiListener client;
   @Autowired
@@ -76,7 +75,7 @@ class DefaultDataPlatformApiListenerIntegrationTest extends IntegrationTest {
 
   @Test
   void testSeatHeldEventHandled() {
-    SeatHeldStatusEvent event = SeatHeldStatusEvent.of(UUID.randomUUID());
+    SeatHeldStatusEvent event = SeatHeldStatusEvent.of(UUID.randomUUID(), UUID.randomUUID());
     eventPublisher.publishEvent(event);
 
     if (!TestTransaction.isActive()) {
@@ -91,7 +90,7 @@ class DefaultDataPlatformApiListenerIntegrationTest extends IntegrationTest {
 
   @Test
   void testSeatAvailableEventHandled() {
-    SeatAvailableStatusEvent event = SeatAvailableStatusEvent.of(UUID.randomUUID());
+    SeatAvailableStatusEvent event = SeatAvailableStatusEvent.of(UUID.randomUUID(), UUID.randomUUID());
     eventPublisher.publishEvent(event);
 
     if (!TestTransaction.isActive()) {
