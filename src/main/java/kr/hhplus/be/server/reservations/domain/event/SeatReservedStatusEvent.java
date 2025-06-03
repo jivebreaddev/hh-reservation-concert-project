@@ -3,8 +3,10 @@ package kr.hhplus.be.server.reservations.domain.event;
 import java.util.UUID;
 
 public class SeatReservedStatusEvent {
+
   private final UUID seatId;
   private final UUID concertId;
+
   private SeatReservedStatusEvent(UUID seatId, UUID concertId) {
     this.seatId = seatId;
     this.concertId = concertId;

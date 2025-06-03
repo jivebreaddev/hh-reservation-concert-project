@@ -2,7 +2,7 @@ package kr.hhplus.be.server.fake;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import kr.hhplus.be.server.platform.infra.DataPlatformClient;
+import kr.hhplus.be.server.platform.domain.DataPlatformClient;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 

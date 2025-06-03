@@ -50,6 +50,8 @@ dependencies {
 
 	implementation ("io.github.resilience4j:resilience4j-spring-boot3")
 	implementation ("io.github.resilience4j:resilience4j-all")
+	implementation("org.apache.kafka:kafka-clients:3.8.0")
+	implementation ("org.springframework.kafka:spring-kafka")
 
 	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
