@@ -7,14 +7,10 @@ plugins {
 	id("io.gatling.gradle") version "3.13.5"
 }
 
-fun getGitHash(): String {
-	return providers.exec {
-		commandLine("git", "rev-parse", "--short", "HEAD")
-	}.standardOutput.asText.get().trim()
-}
+
 
 group = "kr.hhplus.be"
-version = getGitHash()
+version = "0.0.1"
 
 java {
 	toolchain {
@@ -52,6 +48,8 @@ dependencies {
 	implementation ("io.github.resilience4j:resilience4j-all")
 	implementation("org.apache.kafka:kafka-clients:3.8.0")
 	implementation ("org.springframework.kafka:spring-kafka")
+	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 
 	// Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -76,7 +74,7 @@ tasks.withType<Test> {
 
 
 gatling {
-	jvmArgs = listOf("-server", "-Xms512M", "-Xmx512M")
+	jvmArgs = listOf("-server", "-Xms1024M", "-Xmx1024M")
 	systemProperties = mapOf("file.encoding" to "UTF-8")
 }
 

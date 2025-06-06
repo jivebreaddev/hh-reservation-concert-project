@@ -2,11 +2,11 @@ spring:
   application:
     name: hhplus
   datasource:
-    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://mysql:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
     username: application
     password: application
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 50
       connection-timeout: 10000
       max-lifetime: 60000
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,9 +20,7 @@ spring:
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
-redis:
-  queue:
-    initial-size: 1000
+
 resilience4j:
   bulkhead:
     instances:
@@ -42,6 +40,25 @@ resilience4j:
       handleQueueEventRetry:
         maxAttempts: 3
         waitDuration: 200ms
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  export:
+    prometheus:
+      enabled: true
+server:
+  tomcat:
+    threads:
+      max: 500          # 최대 워커 스레드 수 (기본값: 200)
+      min-spare: 50     # 최소 예비 스레드 수 (기본값: 10)
+    max-connections: 10000   # 최대 커넥션 수
+    accept-count: 1000       # 큐 대기 요청 수 (Thread 풀 초과 시 대기 가능한 수)
+    connection-timeout: 30s  # 커넥션 타임아웃
 ---
 spring.config.activate.on-profile: local, test
 
@@ -108,3 +125,11 @@ resilience4j:
         maxAttempts: 3
         waitDuration: 200ms
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
