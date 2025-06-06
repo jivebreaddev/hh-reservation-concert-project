@@ -9,7 +9,8 @@ services:
       - MYSQL_USER=application
       - MYSQL_PASSWORD=application
       - MYSQL_DATABASE=hhplus
-
+    networks:
+      - redis-net
   redis-master:
     image: redis:7.2
     ports:
@@ -23,41 +24,40 @@ services:
     networks:
       - redis-net
   redis-replica:
-      image: redis:7.2
-      ports:
-        - "6380:6379"
-
-      command: redis-server --appendonly yes --port 6379 --slaveof redis-master 6379 --masterauth mypass
-      healthcheck:
-        test: [ "CMD", "redis-cli", "-h", "redis-replica", "ping" ]
-        interval: 10s
-        retries: 5
-        timeout: 5s
-      depends_on:
-        redis-master:
-          condition: service_healthy
-      networks:
-        - redis-net
-  redis-sentinel:
-      image: redis:7.2
-      ports:
-        - "26379:26379"
-      command: >
-        /usr/local/bin/redis-sentinel /etc/sentinel.conf
-      volumes:
-        - ./sentinel.conf:/etc/sentinel.conf
-      healthcheck:
-        test: [ "CMD", "redis-cli", "-h", "redis-sentinel", "ping" ]
-        interval: 10s
-        retries: 5
-        timeout: 5s
-      depends_on:
-        redis-master:
-          condition: service_healthy
-        redis-replica:
-          condition: service_healthy
-      networks:
-        - redis-net
+    image: redis:7.2
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes --port 6379 --slaveof redis-master 6379 --masterauth mypass
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-h", "redis-replica", "ping" ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    networks:
+      - redis-net
+  #  redis-sentinel:
+  #    image: redis:7.2
+  #    ports:
+  #      - "26379:26379"
+  #    command: >
+  #      /usr/local/bin/redis-sentinel /etc/sentinel.conf
+  #    volumes:
+  #      - ./sentinel.conf:/etc/sentinel.conf
+  #    healthcheck:
+  #      test: [ "CMD", "redis-cli", "-h", "redis-sentinel", "ping" ]
+  #      interval: 10s
+  #      retries: 5
+  #      timeout: 5s
+  #    depends_on:
+  #      redis-master:
+  #        condition: service_healthy
+  #      redis-replica:
+  #        condition: service_healthy
+  #    networks:
+  #      - redis-net
   kafka:
     image: public.ecr.aws/bitnami/kafka:3.5.1
     ports:
@@ -74,6 +74,67 @@ services:
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
     networks:
       - redis-net
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring.yml:/etc/prometheus/prometheus.yml
+    expose:
+      - "9090"
+    networks:
+      - redis-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    user: "root"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - prometheus
+    networks:
+      - redis-net
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+    expose:
+      - "9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys/:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: always
+    networks:
+      - redis-net
+  application:
+    image: myapp:1.0
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    restart: always
+    networks:
+      - redis-net
+    mem_limit: 2g
+    cpus: 3.0
 networks:
   redis-net:
     driver: bridge
