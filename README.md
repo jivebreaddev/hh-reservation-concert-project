@@ -1034,7 +1034,7 @@ public void configure(StateMachineTransitionConfigurer<QueueState, QueueEvent> t
 
 
 ### 2. 핵심 구성요소
-![img.png](img.png)
+![img.png](docs/img.png)
 #### Topic
 
 - 메시지를 논리적으로 구분하는 단위
@@ -1160,5 +1160,126 @@ Key   | Value   | Headers | Timestamp | Offset | Partition
     - 메시지 형식이 바뀌면 Consumer가 깨질 수 있음
     - 파티션 전략과 순서 보장을 위해 Key 설정 필수
     - Kafka는 자동 재시도 X → 실패 시 DLQ 구성 필수
+
+</details>
+
+<details>
+  <summary>16. API 부하테스트를 통한 병목지점 식별</summary>
+
+
+## 1. 부하 테스트 환경 설정 
+### A. 테스트 환경
+- 운영 체제: Windows 11 (64비트)
+- 프로세서: AMD Ryzen 5 3600 (6-Core, 3.60GHz)
+- 메모리 : 16GB
+- 스토리지: 500GB SSD
+- 네트워크 환경: Docker Compose Bridge (단일 node 내 컨테이너간 통신)
+
+### B. 테스트 및 모니터링 툴
+- Gatling
+- Prometheus
+- Grafana
+
+### C. 애플리케이션 컨테이너 자원 제한
+- CPU: 1.0
+- MEMORY: 2GB
+
+## 2. 성능 테스트 시나리오 선정
+
+### 1. 대기열 시나리오 PEAK 테스트
+![img_1.png](docs/img_1.png)
+
+- A. 대기열 토큰 생성 및 인입 (2000 QPS PEAK 테스트)
+- B. 토큰 발급 상태 조회 (2000 QPS에서 매 1분간 100 QPS 씩 감소시키면서 진행)
+
+#### 1. POST /api/v1/queues/queue: 대기열 토큰 생성 및 인입
+
+##### 1.A 성능 테스트 기준
+
+| 항목                        | 요구 조건                                 |
+| ------------------------- |---------------------------------------|
+| **활성 사용자 수 (VU)**         | 1000                                  |
+| **QPS (초당 요청 수)**         | 1000                                  |
+| **처리량 (Throughput)**      | 초당 최소 1000 요청 이상                      |
+| **응답 시간 (Response Time)** | p95: 100 \~ 150ms 이하<br>p99: 500ms 이하 |
+| **오류율 (Error Rate)**      | 0.1% 이하                               |
+
+
+#### 2. POST /api/v1/queues/entering : 토큰 발급 상태 조회
+
+##### 2.A 성능 테스트 기준
+
+| 항목                        | 요구 조건                                 |
+| ------------------------- | ------------------------------------- |
+| **활성 사용자 수 (VU)**         | 1000                                  |
+| **QPS (초당 요청 수)**         | 1000                                  |
+| **처리량 (Throughput)**      | 초당 최소 1000 요청 이상                      |
+| **응답 시간 (Response Time)** | p95: 100 \~ 150ms 이하<br>p99: 500ms 이하 |
+| **오류율 (Error Rate)**      | 0.1% 이하                               |
+
+#### 성능 테스트 결과 및 분석
+- 먼저 로컬 환경에서 테스트 진행을 함으로써 2가지 한계점이 있습니다.
+  - 1. WINDOWS에서 한정된 소켓 자원을 가지고 Request 요청을 진행하였습니다.
+    - socket reuse를 사용하면서, Client가 연결을 맺는 구간에 대한 response time (+a) 이 추가적으로 산정되어야합니다.
+  - 2. Redis도 로컬 환경에서 구성되었습니다.
+    - Server <-> redis 왕복시간 (+b) 이 최소한으로 산정되어있습니다.
+  - 이에 따라, 밑의 결과의 latency + a + b 를 해야 실제 성능을 가늠할 수 있습니다.
+
+![img_7.png](docs/img_7.png)
+
+- Application 의 Core가 1개일 때, 
+
+
+![img_4.png](docs/img_4.png)
+
+![img_3.png](docs/img_3.png)
+
+- 두개의 api 모두 기준이하의 latency을 보여줬다.
+
+
+
+##### CPU 코어수 변경 후 테스트
+- Grafana 에서 Runnable을 하는 thread의 수가 증가하고 CPU USAGE가 100% 할당됨에 따라, core 수를 3로 증가시켰다.
+
+![img_5.png](docs/img_5.png)
+
+![img_6.png](docs/img_6.png)
+
+
+#### 수행 결과 분석
+
+---- Response Time Distribution ----------------------------------------------------------------------------------------
+> OK: t < 800 ms                                                                                         47,868 (78.99%)
+> 
+> OK: 800 ms <= t < 1200 ms                                                                               2,202  (3.63%)
+> 
+> OK: t >= 1200 ms                                                                                       10,530 (17.38%)
+
+- 위와 같은 성능을 보임에 따라, 성능 기준에 부합하지 않으며, core 당 rps에도 못미친다는것을 알 수있다. 
+- 별개의 API로 테스트할 때는, 성능적으로 이슈가 없는것으로 보이지만, 같이 수행 됐을때는 이슈가 있는것으로 보인다.
+- 추가적인 병목이나, REDIS의 COMMAND LAG은 분석이 필요하다.
+
+### 2. 콘서트 예약 시나리오 부하테스트
+
+#### 1. POST /api/v1/reservations/reserve: 콘서트 예약
+
+##### 1.A 성능 테스트 기준
+
+| 항목                     | 요구 조건                                |
+|--------------------------|--------------------------------------|
+| **활성 토큰 수 (VU)**     | 100                                  |
+| **QPS (Queries Per Second)** | 20 ~ 50                           |
+| **처리량 (Throughput)**   | 초당 최소 50 요청 이상                       |
+| **응답 시간 (Response Time)** | p95: 200ms 이하<br>p99: 300 ~ 400ms 이하 |
+| **오류율 (Error Rate)**    | 0.1% 이하  
+
+##### 1.B 성능 테스트 결과 및 분석
+
+
+
+
+## 4. 잠재적 장애 포인트와 대응 방안 수립
+
+
 
 </details>
