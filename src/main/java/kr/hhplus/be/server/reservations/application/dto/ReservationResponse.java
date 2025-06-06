@@ -5,10 +5,13 @@ import java.util.UUID;
 import kr.hhplus.be.server.reservations.domain.ReservationStatus;
 @Schema
 public class ReservationResponse {
-  private final UUID reservationId;
-  private final UUID userId;
-  private final UUID seatId;
-  private final ReservationStatus reservationStatus;
+  private UUID reservationId;
+  private UUID userId;
+  private UUID seatId;
+  private ReservationStatus reservationStatus;
+
+  public ReservationResponse() {
+  }
 
   public ReservationResponse(UUID reservationId, UUID userId, UUID seatId,
       ReservationStatus reservationStatus) {
@@ -28,5 +31,22 @@ public class ReservationResponse {
 
   public ReservationStatus getReservationStatus() {
     return reservationStatus;
+  }
+
+  public void setReservationId(UUID reservationId) {
+    this.reservationId = reservationId;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
+  }
+
+  public void setSeatId(UUID seatId) {
+    this.seatId = seatId;
+  }
+
+  public void setReservationStatus(
+      ReservationStatus reservationStatus) {
+    this.reservationStatus = reservationStatus;
   }
 }

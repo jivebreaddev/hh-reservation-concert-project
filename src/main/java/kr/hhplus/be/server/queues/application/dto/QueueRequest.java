@@ -6,7 +6,10 @@ import java.util.UUID;
 @Schema
 public class QueueRequest {
 
-  private final UUID userId;
+  private UUID userId;
+
+  public QueueRequest() {
+  }
 
   public QueueRequest(UUID userId) {
     this.userId = userId;
@@ -14,5 +17,9 @@ public class QueueRequest {
 
   public UUID getUserId() {
     return userId;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
   }
 }

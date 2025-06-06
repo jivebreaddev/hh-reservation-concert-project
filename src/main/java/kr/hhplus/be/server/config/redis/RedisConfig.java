@@ -16,11 +16,9 @@ public class RedisConfig {
   public RedissonClient redissonClient(ObjectMapper objectMapper) {
     Config config = new Config();
 
-    config.useSentinelServers()
-        .setMasterName("mymaster")
-        .addSentinelAddress("redis://localhost:26379")
-        .setPassword("mypass")
-        .setCheckSentinelsList(false);
+    config.useSingleServer()
+        .setAddress("redis://redis-master:6379")
+        .setPassword("mypass");
 
     config.setCodec(new JsonJacksonCodec(objectMapper));
 

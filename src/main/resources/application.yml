@@ -6,7 +6,8 @@ spring:
     username: application
     password: application
     hikari:
-      maximum-pool-size: 50
+      maximum-pool-size: 500
+      leakDetectionThreshold: 2000
       connection-timeout: 10000
       max-lifetime: 60000
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -59,6 +60,26 @@ server:
     max-connections: 10000   # 최대 커넥션 수
     accept-count: 1000       # 큐 대기 요청 수 (Thread 풀 초과 시 대기 가능한 수)
     connection-timeout: 30s  # 커넥션 타임아웃
+
+kafka:
+  bootstrap-servers: kafka:9094
+  producer:
+    client-id: producer-id
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    retries: 5
+
+  consumer:
+    group-id: consumer-group-id
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      enable-auto-commit: false
+      spring.json.trusted.packages: "*"
+
+  listener:
+    ack-mode: manual
+    concurrency: 1
 ---
 spring.config.activate.on-profile: local, test
 

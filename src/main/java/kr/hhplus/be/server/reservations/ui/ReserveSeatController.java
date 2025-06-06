@@ -21,7 +21,7 @@ public interface ReserveSeatController {
       @RequestBody TemporaryReservationRequest queueRequest);
 
   @Operation(summary = "좌석 예약 API", description = "좌석을 예약 합니다.")
-  ResponseEntity<ReservationResponse> reserveSeat(@RequestHeader("pass-token") String passToken,
+  ResponseEntity<ReservationResponse> reserveSeat(
       @RequestBody ReservationRequest queueRequest);
 
   @Operation(summary = "예약 조회 API", description = "좌석 예약을 조회합니다.")

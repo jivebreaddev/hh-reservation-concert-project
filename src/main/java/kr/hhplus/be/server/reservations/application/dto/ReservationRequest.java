@@ -5,13 +5,20 @@ import java.util.UUID;
 
 @Schema
 public class ReservationRequest {
-  private final UUID reservationId;
+  private UUID reservationId;
 
   public ReservationRequest(UUID reservationId) {
     this.reservationId = reservationId;
   }
 
+  public ReservationRequest() {
+  }
+
   public UUID getReservationId() {
     return reservationId;
+  }
+
+  public void setReservationId(UUID reservationId) {
+    this.reservationId = reservationId;
   }
 }

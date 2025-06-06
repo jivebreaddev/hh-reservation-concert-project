@@ -1,5 +1,6 @@
 package kr.hhplus.be.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.time.Duration;
@@ -8,6 +9,10 @@ import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.codec.JsonJacksonCodec;
+import org.redisson.config.Config;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -105,5 +110,19 @@ public class TestcontainersConfiguration {
     Properties props = new Properties();
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getKafkaBootstrapServers());
     return AdminClient.create(props);
+  }
+  @Bean
+  public RedissonClient redissonClient(ObjectMapper objectMapper) {
+    Config config = new Config();
+
+    config.useSentinelServers()
+        .setMasterName("mymaster")
+        .addSentinelAddress("://localhost:26379")
+        .setPassword("mypass")
+        .setCheckSentinelsList(false);
+
+    config.setCodec(new JsonJacksonCodec(objectMapper));
+
+    return Redisson.create(config);
   }
 }

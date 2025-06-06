@@ -36,7 +36,6 @@ public class DefaultReserveSeatController implements ReserveSeatController {
   @Override
   @PostMapping("/reserve")
   public ResponseEntity<ReservationResponse> reserveSeat(
-      @RequestHeader("pass-token") String passToken,
       @RequestBody ReservationRequest request) {
     return ResponseEntity.ok(reservationService.bookSeat(request));
   }

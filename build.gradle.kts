@@ -7,14 +7,10 @@ plugins {
 	id("io.gatling.gradle") version "3.13.5"
 }
 
-fun getGitHash(): String {
-	return providers.exec {
-		commandLine("git", "rev-parse", "--short", "HEAD")
-	}.standardOutput.asText.get().trim()
-}
+
 
 group = "kr.hhplus.be"
-version = getGitHash()
+version = "1.0.0"
 
 java {
 	toolchain {

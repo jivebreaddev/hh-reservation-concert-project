@@ -62,14 +62,12 @@ public class RedisQueueRepository implements QueueRepository {
       // 1. 큐 맵에 저장
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
       queueMap.put(waitingQueue.getUserId().toString(), waitingQueue);
-      LOGGER.error("Redis 조회 {}", waitingQueue.getUserId().toString());
 
       // 2. 대기열(RScoredSortedSet)에 추가
       RScoredSortedSet<String> waitQueue = redissonClient.getScoredSortedSet(
           RedisKey.WAIT_QUEUE.key());
       waitQueue.add(System.currentTimeMillis(), waitingQueue.getUserId().toString());
 
-      LOGGER.error("Redis 조회 {}", waitingQueue.getUserId().toString());
 
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
@@ -150,6 +148,9 @@ public class RedisQueueRepository implements QueueRepository {
       RMap<String, Queue> queueMap = redissonClient.getMap(RedisKey.QUEUE_MAP.key());
       Queue userQueue = queueMap.get(userId.toString());
 
+      if (userQueue == null) {
+        return Optional.empty();
+      }
       return Optional.of(QueuePosition.of(userQueue.getQueueStatus(), rank.longValue()));
     } catch (Exception e) {
       LOGGER.error("Redis 조회 중 오류 발생", e);
@@ -161,7 +162,6 @@ public class RedisQueueRepository implements QueueRepository {
   public Optional<Queue> findByUserId(UUID userId) {
     try {
       String id = userId.toString();
-      LOGGER.error("Redis 조회 {}", id);
 
       RSet<String> processing = redissonClient.getSet(RedisKey.PROCESS_QUEUE.key());
       if (processing.contains(id)) {

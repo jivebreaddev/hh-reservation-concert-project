@@ -5,12 +5,19 @@ import java.util.UUID;
 
 @Schema
 public class EnterRequest {
-  private final UUID userId;
+  private UUID userId;
+
+  public EnterRequest() {}
+
   public EnterRequest(UUID userId) {
     this.userId = userId;
   }
 
   public UUID getUserId() {
     return userId;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
   }
 }

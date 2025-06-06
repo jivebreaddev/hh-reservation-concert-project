@@ -70,10 +70,16 @@ public class DefaultReservationService {
   @Transactional
   public ReservationResponse bookSeat(
       ReservationRequest request) {
-    Reservation reservation = reservationRepository.findByIdAndReservationStatus(
-            request.getReservationId(), ReservationStatus.PENDING)
-        .orElseThrow(RuntimeException::new);
+    UUID id = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    UUID seatId = UUID.randomUUID();
+    UUID concertId = UUID.randomUUID();
 
+    // WHEN
+    Reservation original = Reservation.createTemporaryReservation(id, userId, seatId, concertId,
+        5L);
+
+    Reservation reservation = original;
     reservation.createReservation();
 
     reservationRepository.save(reservation);

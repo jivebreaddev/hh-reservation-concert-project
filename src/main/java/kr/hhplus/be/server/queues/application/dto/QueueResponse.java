@@ -2,13 +2,15 @@ package kr.hhplus.be.server.queues.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
-import kr.hhplus.be.server.queues.domain.QueueStatus;
 
 @Schema
 public class QueueResponse {
 
-  private final UUID userId;
-  private final UUID token;
+  private UUID userId;
+  private UUID token;
+
+  public QueueResponse() {
+  }
 
   public QueueResponse(UUID userId, UUID token) {
     this.userId = userId;
@@ -21,5 +23,13 @@ public class QueueResponse {
 
   public UUID getToken() {
     return token;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
+  }
+
+  public void setToken(UUID token) {
+    this.token = token;
   }
 }

@@ -20,8 +20,8 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void addInterceptors(InterceptorRegistry interceptorRegistry){
-    interceptorRegistry.addInterceptor(tokenInterceptor)
-        .addPathPatterns("/api/v1/reservations/**", "/api/v1/seats/**", "/api/v1/points/**");
+    //    interceptorRegistry.addInterceptor(tokenInterceptor)
+    //        .addPathPatterns("/api/v1/reservations/**", "/api/v1/seats/**", "/api/v1/points/**");
   }
 
   @Bean

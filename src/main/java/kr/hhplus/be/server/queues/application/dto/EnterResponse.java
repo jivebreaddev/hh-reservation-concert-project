@@ -7,9 +7,12 @@ import kr.hhplus.be.server.queues.domain.QueueStatus;
 @Schema
 public class EnterResponse {
 
-  private final UUID userId;
-  private final QueueStatus queueStatus;
-  private final Long queuePosition;
+  private UUID userId;
+  private QueueStatus queueStatus;
+  private Long queuePosition;
+
+  public EnterResponse() {
+  }
 
   public EnterResponse(UUID userId, QueueStatus queueStatus, Long queuePosition) {
     this.userId = userId;
@@ -24,5 +27,17 @@ public class EnterResponse {
 
   public QueueStatus getQueueStatus() {
     return queueStatus;
+  }
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
+  }
+
+  public void setQueueStatus(QueueStatus queueStatus) {
+    this.queueStatus = queueStatus;
+  }
+
+  public void setQueuePosition(Long queuePosition) {
+    this.queuePosition = queuePosition;
   }
 }
