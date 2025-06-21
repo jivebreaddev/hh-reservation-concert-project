@@ -40,7 +40,7 @@ public class JpaConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-        jpaProperties.put("hibernate.hbm2ddl.auto", "none");
+        jpaProperties.put("hibernate.hbm2ddl.auto", "create");
         System.setProperty("hibernate.timezone.default_storage", "NORMALIZE_UTC");
 
         jpaProperties.put("hibernate.jdbc.time_zone", "UTC");
